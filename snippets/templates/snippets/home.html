@@ -1,0 +1,77 @@
+{% extends 'snippets/base.html' %}
+{% block content %}
+    <section class="hero">
+        <div>
+            <p class="eyebrow">EWIDENCJA CMENTARZY</p>
+            <h1>
+                Odnajdź miejsce.
+                <br>
+                Zachowaj pamięć.
+            </h1>
+            <p class="lead">
+                Wyszukaj bliskich i sprawdź miejsce ich spoczynku. Informacje o cmentarzach, grobach i pochówkach w jednym miejscu.
+            </p>
+            <form class="quick-search" action="{% url 'search' %}" method="get">
+                <label for="home-query">Imię lub nazwisko osoby zmarłej</label>
+                <div class="search-line">
+                    <input id="home-query"
+                           name="q"
+                           maxlength="200"
+                           placeholder="np. Anna Kowalska">
+                    <button>Szukaj osoby</button>
+                </div>
+            </form>
+            <a href="{% url 'search' %}">Przejdź do wyszukiwania z filtrami →</a>
+        </div>
+        <div class="memorial" aria-hidden="true">
+            <div class="arch">
+                <span class="tree">♧</span>
+                <span class="arch-line"></span>
+                <span>PAMIĘTAMY</span>
+            </div>
+            <p>
+                Miejsce dla wspomnień.
+                <br>
+                Przestrzeń dla pamięci.
+            </p>
+        </div>
+    </section>
+    <section class="stats" aria-label="Ewidencja w liczbach">
+        <div>
+            <strong>{{ cemetery_count }}</strong>
+            <span>Cmentarze</span>
+        </div>
+        <div>
+            <strong>{{ grave_count }}</strong>
+            <span>Groby</span>
+        </div>
+        <div>
+            <strong>{{ deceased_count }}</strong>
+            <span>Osoby w ewidencji</span>
+        </div>
+    </section>
+    <section class="section">
+        <p class="eyebrow">JAK MOŻEMY POMÓC</p>
+        <h2>Informacje, których szukasz</h2>
+        <div class="cards">
+            <article class="card">
+                <span class="card-number">01</span>
+                <h3>Znajdź osobę</h3>
+                <p>Wyszukaj imię lub nazwisko. Zawęź wyniki do cmentarza, sektora lub lat śmierci.</p>
+                <a href="{% url 'search' %}">Wyszukaj w ewidencji →</a>
+            </article>
+            <article class="card">
+                <span class="card-number">02</span>
+                <h3>Poznaj cmentarze</h3>
+                <p>Sprawdź adres cmentarza, jego sektory i powiązane miejsca pochówku.</p>
+                <a href="{% url 'cemetery-list' %}">Przeglądaj cmentarze →</a>
+            </article>
+            <article class="card">
+                <span class="card-number">03</span>
+                <h3>Pomóż uzupełnić pamięć</h3>
+                <p>Jeśli znajdziesz błąd, załóż konto i zgłoś poprawkę. Administrator sprawdzi informacje.</p>
+                <a href="{% if user.is_authenticated %} {% url 'request-list' %} {% else %} {% url 'register' %} {% endif %}">Przejdź do swojego konta →</a>
+            </article>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'snippets/base.html' %}
+{% block title %}{{ object }}{% endblock %}
+{% block content %}
+    <div class="page-heading">
+        <a href="{% url 'search' %}">← Wyszukiwarka</a>
+        <p class="eyebrow">OSOBA ZMARŁA</p>
+        <h1>{{ object }}</h1>
+        <p>{{ object.birth_date|date:'d.m.Y' }} — {{ object.death_date|date:'d.m.Y' }}</p>
+    </div>
+    <div class="detail-grid">
+        <section class="panel">
+            <h2>Informacje o pochówku</h2>
+            {% for burial in object.burials.all %}
+                <article class="burial">
+                    <h3>
+                        <a href="{{ burial.grave.section.cemetery.get_absolute_url }}">{{ burial.grave.section.cemetery }}</a>
+                    </h3>
+                    <dl>
+                        <dt>Sektor</dt>
+                        <dd>
+                            {{ burial.grave.section.name }}
+                        </dd>
+                        <dt>Rząd / numer grobu</dt>
+                        <dd>
+                            {{ burial.grave.row }} / {{ burial.grave.number }}
+                        </dd>
+                        <dt>Data pochówku</dt>
+                        <dd>
+                            {{ burial.burial_date|date:'d.m.Y' }}
+                        </dd>
+                    </dl>
+                    <a href="{{ burial.grave.get_absolute_url }}">Szczegóły grobu →</a>
+                </article>
+            {% empty %}
+                <p>Brak informacji o pochówku.</p>
+            {% endfor %}
+        </section>
+        <aside class="card">
+            <h2>Zauważasz błąd?</h2>
+            <p>Przekaż poprawne informacje administratorowi ewidencji.</p>
+            <a class="button secondary"
+               href="{% url 'request-create' 'deceased' object.pk %}">Zgłoś poprawkę</a>
+            {% if not user.is_authenticated %}<p class="help">Wymagane zalogowanie.</p>{% endif %}
+        </aside>
+    </div>
+{% endblock %}

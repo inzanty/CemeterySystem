@@ -1,0 +1,45 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Wyszukiwarka osób{% endblock %}
+{% block content %}
+    <div class="page-heading">
+        <p class="eyebrow">EWIDENCJA OSÓB ZMARŁYCH</p>
+        <h1>Wyszukaj osobę</h1>
+        <p>Wpisz imię lub nazwisko albo skorzystaj z filtrów.</p>
+    </div>
+    <form class="panel filter-grid" method="get">
+        {% include 'snippets/form_fields.html' %}
+        <div class="actions">
+            <button>Szukaj</button>
+            <a href="{% url 'search' %}">Wyczyść filtry</a>
+        </div>
+    </form>
+    <div class="section-heading">
+        <h2>Wyniki wyszukiwania</h2>
+        <span>Liczba wyników: {{ paginator.count }}</span>
+    </div>
+    <div class="record-list">
+        {% for person in object_list %}
+            <article class="record">
+                <div>
+                    <h3>
+                        <a href="{{ person.get_absolute_url }}">{{ person }}</a>
+                    </h3>
+                    <p>{{ person.birth_date|date:'d.m.Y' }} — {{ person.death_date|date:'d.m.Y' }}</p>
+                    {% for burial in person.burials.all %}
+                        <p class="muted">{{ burial.grave }}</p>
+                    {% empty %}
+                        <p class="muted">Brak informacji o miejscu pochówku.</p>
+                    {% endfor %}
+                </div>
+                <a href="{{ person.get_absolute_url }}"
+                   aria-label="Szczegóły: {{ person }}">Szczegóły →</a>
+            </article>
+        {% empty %}
+            <div class="empty">
+                <h3>Nie znaleziono rekordów</h3>
+                <p>Sprawdź formularz lub zmień kryteria wyszukiwania.</p>
+            </div>
+        {% endfor %}
+    </div>
+    {% include 'snippets/pagination.html' %}
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Zgłoś poprawkę{% endblock %}
+{% block content %}
+    <section class="auth panel">
+        <a href="{{ target.get_absolute_url }}">← Powrót do rekordu</a>
+        <h1>Zgłoś poprawkę</h1>
+        <p class="target">{{ target }}</p>
+        <p>Administrator sprawdzi zgłoszenie i w razie potrzeby uzupełni ewidencję.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% include 'snippets/form_fields.html' %}
+            <button>Wyślij zgłoszenie</button>
+        </form>
+    </section>
+{% endblock %}

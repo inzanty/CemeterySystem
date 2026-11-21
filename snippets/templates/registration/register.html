@@ -1,0 +1,17 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Utwórz konto{% endblock %}
+{% block content %}
+    <section class="auth panel">
+        <p class="eyebrow">DOŁĄCZ DO EWIDENCJI</p>
+        <h1>Utwórz konto</h1>
+        <p>Twoje konto umożliwia zgłaszanie poprawek. Przeglądanie ewidencji jest dostępne dla każdego.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% include 'snippets/form_fields.html' %}
+            <button>Utwórz konto</button>
+        </form>
+        <p>
+            Masz już konto? <a href="{% url 'login' %}">Zaloguj się</a>
+        </p>
+    </section>
+{% endblock %}

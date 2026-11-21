@@ -1,0 +1,32 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Grób {{ object.number }}{% endblock %}
+{% block content %}
+    <div class="page-heading">
+        <a href="{{ object.section.cemetery.get_absolute_url }}">← {{ object.section.cemetery }}</a>
+        <p class="eyebrow">MIEJSCE SPOCZYNKU</p>
+        <h1>Grób {{ object.number }}</h1>
+        <p>{{ object.section.cemetery }} · Sektor {{ object.section.name }} · Rząd {{ object.row }}</p>
+    </div>
+    <div class="detail-grid">
+        <section class="panel">
+            <h2>Pochowane osoby</h2>
+            {% for burial in object.burials.all %}
+                <article class="burial">
+                    <h3>
+                        <a href="{{ burial.deceased.get_absolute_url }}">{{ burial.deceased }}</a>
+                    </h3>
+                    <p>{{ burial.deceased.birth_date|date:'d.m.Y' }} — {{ burial.deceased.death_date|date:'d.m.Y' }}</p>
+                    <p class="muted">Data pochówku: {{ burial.burial_date|date:'d.m.Y' }}</p>
+                </article>
+            {% empty %}
+                <p>Brak pochówków w ewidencji tego grobu.</p>
+            {% endfor %}
+        </section>
+        <aside class="card">
+            <h2>Zgłoś poprawkę</h2>
+            <p>Pomóż nam zadbać o poprawność danych miejsca spoczynku.</p>
+            <a class="button secondary"
+               href="{% url 'request-create' 'grave' object.pk %}">Przekaż informacje</a>
+        </aside>
+    </div>
+{% endblock %}

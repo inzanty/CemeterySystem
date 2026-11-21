@@ -1,0 +1,17 @@
+venv/
+.venv/
+.idea/
+.vscode/
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.sqlite3-*
+.env
+.env.*
+!.env.example
+.my_pgpass
+.pgpass
+.coverage
+.pytest_cache/
+staticfiles/
+.DS_Store

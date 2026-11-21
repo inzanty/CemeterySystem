@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description"
+              content="Ewidencja cmentarzy i wyszukiwarka osób zmarłych.">
+        <title>
+            {% block title %}Ewidencja cmentarzy{% endblock %}
+        · Memoria</title>
+        <link rel="stylesheet" href="{% static 'snippets/style.css' %}">
+    </head>
+    <body>
+        <a class="skip" href="#main">Przejdź do treści</a>
+        <header>
+            <nav class="container" aria-label="Nawigacja główna">
+                <a class="brand" href="{% url 'home' %}">
+                    <span class="brand-mark" aria-hidden="true">M</span> Memoria</a>
+                <div class="nav-links">
+                    <a href="{% url 'search' %}">Wyszukiwarka</a>
+                    <a href="{% url 'cemetery-list' %}">Cmentarze</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'request-list' %}">Moje zgłoszenia</a>
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin:index' %}">Administracja</a>
+                        {% endif %}
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button class="nav-button">Wyloguj</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}">Zaloguj się</a>
+                        <a class="button small" href="{% url 'register' %}">Utwórz konto</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </header>
+        <main id="main" class="container">
+            {% for message in messages %}<div class="notice" role="status">{{ message }}</div>{% endfor %}
+            {% block content %}{% endblock %}
+        </main>
+        <footer class="container">
+            <span>
+                <strong>Memoria</strong> · Ewidencja cmentarzy</span>
+            <span>Pamięć zaczyna się od imienia.</span>
+        </footer>
+    </body>
+</html>

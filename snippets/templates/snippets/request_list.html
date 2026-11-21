@@ -1,0 +1,31 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Moje zgłoszenia{% endblock %}
+{% block content %}
+    <div class="page-heading">
+        <p class="eyebrow">TWOJE KONTO · {{ user.username }}</p>
+        <h1>Moje zgłoszenia</h1>
+        <p>Sprawdź status poprawek i odpowiedzi administratora.</p>
+    </div>
+    <div class="record-list">
+        {% for correction in object_list %}
+            <article class="record">
+                <div>
+                    <span class="badge {{ correction.status }}">{{ correction.get_status_display }}</span>
+                    <h3>
+                        <a href="{{ correction.get_absolute_url }}">Zgłoszenie #{{ correction.pk }}</a>
+                    </h3>
+                    <p>{{ correction.target }}</p>
+                    <p class="muted">{{ correction.created_at|date:'d.m.Y H:i' }}</p>
+                </div>
+                <a href="{{ correction.get_absolute_url }}">Szczegóły →</a>
+            </article>
+        {% empty %}
+            <div class="empty">
+                <h2>Nie masz jeszcze zgłoszeń</h2>
+                <p>Otwórz kartę osoby lub grobu i wybierz „Zgłoś poprawkę”.</p>
+                <a class="button" href="{% url 'search' %}">Przejdź do wyszukiwarki</a>
+            </div>
+        {% endfor %}
+    </div>
+    {% include 'snippets/pagination.html' %}
+{% endblock %}

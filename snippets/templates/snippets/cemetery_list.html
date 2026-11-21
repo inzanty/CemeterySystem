@@ -1,0 +1,28 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Cmentarze{% endblock %}
+{% block content %}
+    <div class="page-heading">
+        <p class="eyebrow">MIEJSCA PAMIĘCI</p>
+        <h1>Cmentarze</h1>
+        <p>Adresy, sektory i informacje o miejscach pochówku.</p>
+    </div>
+    <div class="cards">
+        {% for cemetery in object_list %}
+            <article class="card">
+                <span class="eyebrow">CMENTARZ</span>
+                <h2>
+                    <a href="{{ cemetery.get_absolute_url }}">{{ cemetery.name }}</a>
+                </h2>
+                <p>{{ cemetery.address|default:'Adres nie został jeszcze podany.' }}</p>
+                <p class="muted">Sektory: {{ cemetery.section_count }} · Groby: {{ cemetery.grave_count }}</p>
+                <a href="{{ cemetery.get_absolute_url }}">Zobacz cmentarz →</a>
+            </article>
+        {% empty %}
+            <div class="empty">
+                <h2>Brak cmentarzy w ewidencji</h2>
+                <p>Administrator może dodać pierwsze rekordy.</p>
+            </div>
+        {% endfor %}
+    </div>
+    {% include 'snippets/pagination.html' %}
+{% endblock %}
