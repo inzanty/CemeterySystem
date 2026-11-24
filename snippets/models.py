@@ -292,6 +292,8 @@ class RecordChange(models.Model):
     record_label = models.TextField("rekord")
     before = models.JSONField(default=dict)
     after = models.JSONField(default=dict)
+    before_relations = models.JSONField("nazwy powiązań przed zmianą", default=dict)
+    after_relations = models.JSONField("nazwy powiązań po zmianie", default=dict)
 
     class Meta:
         ordering = ["-timestamp", "-pk"]

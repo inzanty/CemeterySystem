@@ -1,13 +1,16 @@
 .nav-group { position: relative; }
-.nav-group summary { cursor: pointer; padding: 10px 0; font-weight: 600; color: var(--green, #335b4a); }
-.nav-menu { display: flex; flex-direction: column; align-items: stretch; gap: 2px; list-style: none; margin: 0; position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: max-content; min-width: 220px; max-width: calc(100vw - 36px); padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: white; box-shadow: 0 12px 28px #243d2e15; }
+.nav-group summary { cursor: pointer; padding: 10px 0; font-weight: 600; color: var(--green); }
+.nav-menu { display: flex; flex-direction: column; align-items: stretch; gap: 2px; list-style: none; margin: 0; position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: max-content; min-width: 220px; max-width: calc(100vw - 36px); padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: 0 12px 28px var(--menu-shadow); }
 .nav-menu > li { display: block; width: 100%; margin: 0; padding: 0; }
 .nav-menu a, .nav-menu .nav-button { display: block; width: 100%; padding: 10px 12px; text-align: left; border-radius: 4px; }
-.nav-menu a:hover, .nav-menu .nav-button:hover { background: #f2f5ef; }
-.nav-menu a:focus-visible, .nav-group summary:focus-visible { outline: 2px solid var(--green, #335b4a); outline-offset: 3px; }
+.nav-menu a:hover, .nav-menu .nav-button:hover { background: var(--menu-hover); color: var(--green); }
+.nav-menu a:focus-visible, .nav-group summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 @media (max-width: 580px) {
     .nav-links { width: 100%; }
     .nav-group { width: 100%; }
     .nav-menu { position: static; width: 100%; max-width: none; margin-top: 4px; box-shadow: none; }
     .nav-group summary { padding: 6px 0; }
 }
+
+.nav-group.is-current > summary { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.nav-menu a[aria-current="page"] { background: var(--menu-current); font-weight: 700; }

@@ -50,3 +50,28 @@ class RequestMigrationTests(TransactionTestCase):
                 proposed_section_id=section.pk, proposed_row="2", proposed_number="2")
         finally:
             MigrationExecutor(connection).migrate(latest)
+
+    def test_relation_name_migration_preserves_existing_history(self):
+        executor = MigrationExecutor(connection)
+        latest = executor.loader.graph.leaf_nodes()
+        previous = [("snippets", "0004_savedgrave_recordchange_gravephoto_and_more")]
+        try:
+            executor.migrate(previous)
+            old = executor.loader.project_state(previous).apps
+            entry = old.get_model("snippets", "RecordChange").objects.create(
+                entity_type="grave", entity_id=99, action="update", record_label="Historyczny grób",
+                before={"section_id": 10}, after={"section_id": 11})
+            timestamp = entry.timestamp
+            executor = MigrationExecutor(connection)
+            executor.migrate(latest)
+            new = executor.loader.project_state(latest).apps.get_model("snippets", "RecordChange")
+            preserved = new.objects.get(pk=entry.pk)
+            self.assertEqual(preserved.timestamp, timestamp)
+            self.assertEqual(preserved.record_label, "Historyczny grób")
+            self.assertEqual(preserved.before, {"section_id": 10})
+            self.assertEqual(preserved.after, {"section_id": 11})
+            self.assertEqual(preserved.before_relations, {})
+            self.assertEqual(preserved.after_relations, {})
+            self.assertEqual(new.objects.count(), 1)
+        finally:
+            MigrationExecutor(connection).migrate(latest)

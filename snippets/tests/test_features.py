@@ -323,3 +323,53 @@ class FeatureTests(TestCase):
         self.assertContains(response, "moderator")
         self.assertContains(response, "nazwa")
         self.assertEqual(self.client.get(self.url("record-history"), {"record": "invalid"}).context["paginator"].count, 0)
+
+    def test_history_relation_names_are_captured_for_both_sides(self):
+        other_cemetery = Cemetery.objects.create(name="Cmentarz Leśny")
+        other_section = Section.objects.create(cemetery=other_cemetery, name="B")
+        original_label = str(self.section)
+        with audit_changes(self.mod):
+            self.grave.section = other_section
+            self.grave.save()
+        entry = RecordChange.objects.get()
+        self.assertEqual(entry.before["section_id"], self.section.pk)
+        self.assertEqual(entry.after["section_id"], other_section.pk)
+        self.assertEqual(entry.before_relations["section_id"], original_label)
+        self.assertEqual(entry.after_relations["section_id"], str(other_section))
+        # Later renames and deletion must not rewrite the names recorded at the time.
+        self.section.name = "Renamed"
+        self.section.save()
+        self.section.delete()
+        other_cemetery.name = "New name"
+        other_cemetery.save()
+        self.client.force_login(self.mod)
+        response = self.client.get(self.url("record-history"))
+        self.assertContains(response, f"{original_label} (#{entry.before['section_id']})")
+        self.assertContains(response, f"Cmentarz Leśny — sektor B (#{other_section.pk})")
+        self.assertNotContains(response, "nazwa bieżąca")
+
+    def test_older_history_relation_names_have_explicit_fallback(self):
+        entry = RecordChange.objects.create(entity_type="grave", entity_id=self.grave.pk,
+                    action="update", editor=self.mod, record_label=str(self.grave),
+                    before={"section_id": 999999}, after={"section_id": self.section.pk})
+        self.client.force_login(self.mod)
+        response = self.client.get(self.url("record-history"))
+        self.assertContains(response, "Usunięty rekord (#999999)")
+        self.assertContains(response, f"{self.section} (#{self.section.pk}; nazwa bieżąca)")
+        entry.refresh_from_db()
+        self.assertEqual(entry.before_relations, {})
+        self.assertEqual(entry.after_relations, {})
+
+    def test_navigation_marks_current_category_and_exact_page(self):
+        self.client.force_login(self.mod)
+        cases = [(reverse("search"), "Odkrywaj"), (self.url("saved-graves"), "Moje konto"),
+                 (reverse("moderator-dashboard"), "Zarządzanie"), (self.url("record-history"), "Zarządzanie")]
+        for url, label in cases:
+            response = self.client.get(url)
+            self.assertContains(response, 'class="nav-group is-current"')
+            self.assertContains(response, f'<summary>{label}</summary>')
+            self.assertContains(response, 'snippets/navigation.js')
+            self.assertEqual(response.context["navigation_category"],
+                             {"Odkrywaj": "discover", "Moje konto": "account", "Zarządzanie": "management"}[label])
+            if label != "Zarządzanie" or url == reverse("moderator-dashboard"):
+                self.assertContains(response, f'href="{url}" aria-current="page"')

@@ -9,8 +9,10 @@
         <title>
             {% block title %}Ewidencja cmentarzy{% endblock %}
         · Memoria</title>
+        <script src="{% static 'snippets/theme.js' %}"></script>
         <link rel="stylesheet" href="{% static 'snippets/style.css' %}">
         <link rel="stylesheet" href="{% static 'snippets/navigation.css' %}">
+        <script src="{% static 'snippets/navigation.js' %}" defer></script>
     </head>
     <body>
         <a class="skip" href="#main">Przejdź do treści</a>
@@ -19,39 +21,53 @@
                 <a class="brand" href="{% url 'home' %}">
                     <span class="brand-mark" aria-hidden="true">M</span> Memoria</a>
                 <div class="nav-links">
-                    <details class="nav-group" name="navigation">
+                    <button id="theme-preference" class="theme-toggle" type="button" hidden
+                            aria-label="Motyw: Systemowy. Zmień na Jasny." title="Motyw: Systemowy. Zmień na Jasny.">
+                        <svg class="theme-icon theme-icon-light" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="4" />
+                            <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
+                        </svg>
+                        <svg class="theme-icon theme-icon-dark" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z" />
+                        </svg>
+                        <svg class="theme-icon theme-icon-system" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="13" rx="2" />
+                            <path d="M12 17v4m-4 0h8" />
+                        </svg>
+                    </button>
+                    <details class="nav-group{% if navigation_category == 'discover' %} is-current{% endif %}" name="navigation">
                         <summary>Odkrywaj</summary>
                         <ul class="nav-menu">
-                            <li><a href="{% url 'search' %}">Wyszukiwarka</a></li>
-                            <li><a href="{% url 'cemetery-list' %}">Cmentarze</a></li>
-                            <li><a href="{% url 'missing-grave-create' %}">Zgłoś brakujący grób</a></li>
+                            <li><a href="{% url 'search' %}"{% if navigation_page == 'search' %} aria-current="page"{% endif %}>Wyszukiwarka</a></li>
+                            <li><a href="{% url 'cemetery-list' %}"{% if navigation_page == 'cemetery-list' %} aria-current="page"{% endif %}>Cmentarze</a></li>
+                            <li><a href="{% url 'missing-grave-create' %}"{% if navigation_page == 'missing-grave-create' %} aria-current="page"{% endif %}>Zgłoś brakujący grób</a></li>
                         </ul>
                     </details>
                     {% if can_moderate or user.is_staff %}
-                        <details class="nav-group" name="navigation">
+                        <details class="nav-group{% if navigation_category == 'management' %} is-current{% endif %}" name="navigation">
                             <summary>Zarządzanie</summary>
                             <ul class="nav-menu">
                                 {% if can_moderate %}
-                                    <li><a href="{% url 'moderator-dashboard' %}">Panel moderatora</a></li>
+                                    <li><a href="{% url 'moderator-dashboard' %}"{% if navigation_page == 'moderator-dashboard' %} aria-current="page"{% endif %}>Panel moderatora</a></li>
                                 {% endif %}
                                 {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Administracja</a></li>{% endif %}
                             </ul>
                         </details>
                     {% endif %}
                     {% if user.is_authenticated %}
-                        <details class="nav-group" name="navigation">
+                        <details class="nav-group{% if navigation_category == 'account' %} is-current{% endif %}" name="navigation">
                             <summary>Moje konto</summary>
                             <ul class="nav-menu">
-                                <li><a href="{% url 'saved-graves' %}">Moje zapisane groby</a></li>
-                                <li><a href="{% url 'request-list' %}">Moje zgłoszenia</a></li>
+                                <li><a href="{% url 'saved-graves' %}"{% if navigation_page == 'saved-graves' %} aria-current="page"{% endif %}>Moje zapisane groby</a></li>
+                                <li><a href="{% url 'request-list' %}"{% if navigation_page == 'request-list' %} aria-current="page"{% endif %}>Moje zgłoszenia</a></li>
                                 <li><form method="post" action="{% url 'logout' %}">
                                     {% csrf_token %}<button class="nav-button">Wyloguj</button>
                                 </form></li>
                             </ul>
                         </details>
                     {% else %}
-                        <a href="{% url 'login' %}">Zaloguj się</a>
-                        <a class="button small" href="{% url 'register' %}">Utwórz konto</a>
+                        <a href="{% url 'login' %}"{% if navigation_page == 'login' %} aria-current="page"{% endif %}>Zaloguj się</a>
+                        <a class="button small" href="{% url 'register' %}"{% if navigation_page == 'register' %} aria-current="page"{% endif %}>Utwórz konto</a>
                     {% endif %}
                 </div>
             </nav>

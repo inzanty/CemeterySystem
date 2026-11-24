@@ -1,0 +1,3 @@
+-r requirements.txt
+# Container runtime: Python 3.12; local Python 3.9 development remains supported.
+gunicorn==27.0.1

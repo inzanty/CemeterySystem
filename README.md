@@ -71,7 +71,7 @@ chronione (np. pochówki i zgłoszenia) nadal blokują usunięcie grobu.
 `MEDIA_URL` ma wartość `/media/`. Serwer Django udostępnia pliki lokalnie tylko
 przy `DEBUG=True`. W produkcji skonfiguruj serwer WWW lub magazyn obiektowy do
 publicznego odczytu `/media/`, bez wykonywania przesłanych plików. Zapewnij trwały
-wolumen, prawa zapisu dla aplikacji i kopie zapasowe plików wraz z bazą danych.
+wolumen i prawa zapisu dla aplikacji.
 `collectstatic` nie kopiuje zdjęć. Nowa instalacja wymaga `pip install -r requirements.txt`
 i `python manage.py migrate`.
 
@@ -82,7 +82,10 @@ osoby zmarłej i pochówku oraz dodanie/usunięcie zdjęcia. Obejmuje panel mode
 Django admin (także usuwanie zbiorcze), tworzenie grobu z osobą i pochówkiem oraz
 akceptację zgłoszenia brakującego grobu. Wpis zawiera autora, czas, nazwę rekordu,
 identyfikator i wartości pól przed/po zmianie. Daty mają format ISO 8601,
-a klucze obce są liczbami ID. Brak zmian nie tworzy wpisu; wycofanie transakcji
+a klucze obce są liczbami ID. Historia pokazuje obok ID nazwy powiązanych rekordów,
+zapamiętane osobno przed i po zmianie. Nazwy te pozostają po zmianie lub usunięciu
+powiązania. Dla starszych wpisów bez zapisanych nazw dostępna nazwa bieżąca jest
+wyraźnie oznaczona; brakujący rekord jest opisany jako usunięty. Brak zmian nie tworzy wpisu; wycofanie transakcji
 wycofuje również historię. Historia pozostaje po usunięciu rekordu i nie ma akcji
 edycji ani usuwania w aplikacji lub adminie. Po usunięciu konta autora pozostaje
 historia z pustym autorem.
@@ -92,3 +95,26 @@ Zapisy prywatnych grobów, komendy seed i bezpośrednie operacje ORM/skryptów n
 są objęte historią przypisywaną użytkownikowi. Publiczny REST API pozostaje bez zmian.
 
 Weryfikacja: `python manage.py test` oraz `python manage.py check`.
+
+
+## Nawigacja i uruchomienie z trwałymi zdjęciami
+
+Kategorie nawigacji: „Odkrywaj”, „Zarządzanie”, „Moje konto”. Bieżąca kategoria
+jest podkreślona, a bieżąca strona oznaczona w menu. Menu zamyka się po kliknięciu
+poza nim albo po Escape; Escape przenosi fokus na nagłówek kategorii.
+
+Gotowy zestaw Gunicorn + Nginx z trwałymi wolumenami dla bazy i zdjęć znajduje się
+w [deploy/README.md](deploy/README.md). Nie uruchamia żadnych zadań tworzenia kopii.
+
+## Motyw interfejsu
+
+Przycisk motywu w nagłówku przełącza kolejno tryby „Systemowy” → „Jasny” → „Ciemny”.
+Ikona monitora, słońca lub księżyca wskazuje bieżący tryb. Etykieta dostępności
+i podpowiedź opisują bieżący tryb oraz tryb po następnym kliknięciu.
+Domyślny tryb systemowy śledzi ustawienia urządzenia. Wybór jest zapamiętywany
+w bieżącej przeglądarce (`localStorage`, klucz `memoria-theme`) i synchronizowany
+między kartami. Przy zablokowanym magazynie działa do opuszczenia strony.
+Bez JavaScript interfejs korzysta z ustawień urządzenia, a przycisk jest ukryty.
+Panel Django admin ma własne sterowanie motywem.
+
+Testy logiki motywu (Node.js 18+): `node --test snippets/tests/theme.test.cjs`.

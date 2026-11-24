@@ -35,27 +35,41 @@ def snapshot(instance):
     return result
 
 
+def relation_labels(instance):
+    if instance is None:
+        return {}
+    labels = {}
+    for field in instance._meta.concrete_fields:
+        if field.is_relation and getattr(instance, field.attname) is not None:
+            labels[field.attname] = str(getattr(instance, field.name))
+    return labels
+
+
 def remember(sender, instance, **kwargs):
     if _actor.get() is not None:
         previous = sender.objects.filter(pk=instance.pk).first() if instance.pk else None
         instance._audit_before = snapshot(previous) if previous else {}
+        instance._audit_before_relations = relation_labels(previous)
 
 
-def write(instance, action, before, after):
+def write(instance, action, before, after, before_relations=None):
     editor = _actor.get()
     if editor is not None and before != after:
         RecordChange.objects.create(entity_type=instance._meta.model_name,
             entity_id=instance.pk, action=action, editor=editor,
-            record_label=str(instance), before=before, after=after)
+            record_label=str(instance), before=before, after=after,
+            before_relations=before_relations or {},
+            after_relations=relation_labels(instance) if after else {})
 
 
 def saved(sender, instance, created, **kwargs):
     if _actor.get() is not None:
-        write(instance, "create" if created else "update", getattr(instance, "_audit_before", {}), snapshot(instance))
+        write(instance, "create" if created else "update", getattr(instance, "_audit_before", {}), snapshot(instance),
+              getattr(instance, "_audit_before_relations", {}))
 
 
 def deleting(sender, instance, **kwargs):
-    write(instance, "delete", snapshot(instance), {})
+    write(instance, "delete", snapshot(instance), {}, relation_labels(instance))
 
 
 def remove_file(sender, instance, using, **kwargs):

@@ -6,10 +6,11 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .audit import audit_changes, TYPE_LABELS, TRACKED
+from .audit import audit_changes, TYPE_LABELS
 from .models import Grave, GravePhoto, SavedGrave, RecordChange
 from .photo_forms import GravePhotoForm
 from .record_management import moderator_only
+from .history_display import MODELS, relation_fallbacks, display_value
 
 
 @login_required
@@ -94,14 +95,19 @@ def history(request):
         records = records.filter(entity_id=int(entity_id)) if entity_id.isdecimal() and len(entity_id) < 19 else records.none()
     context = page_context(request, records)
     rows = []
-    for entry in context["page_obj"]:
-        model = next((m for m in TRACKED if m._meta.model_name == entry.entity_type), None)
-        labels = {f.attname: str(f.verbose_name) for f in model._meta.fields} if model else {}
+    entries = list(context["page_obj"])
+    fallbacks = relation_fallbacks(entries)
+    for entry in entries:
+        model = MODELS.get(entry.entity_type)
+        fields = {f.attname: f for f in model._meta.fields} if model else {}
         changes = []
         for key in sorted(entry.before.keys() | entry.after.keys()):
             before, after = entry.before.get(key), entry.after.get(key)
             if before != after:
-                changes.append({"label": labels.get(key, key), "before": before, "after": after})
+                field = fields.get(key)
+                changes.append({"label": str(field.verbose_name) if field else key,
+                    "before": display_value(field, before, entry.before_relations, fallbacks),
+                    "after": display_value(field, after, entry.after_relations, fallbacks)})
         rows.append({"entry": entry, "changes": changes, "type_label": TYPE_LABELS.get(entry.entity_type, entry.entity_type)})
     context.update(rows=rows, types=TYPE_LABELS.items(), actions=RecordChange.Action.choices,
                    selected_type=kind, selected_action=action, record_id=entity_id)

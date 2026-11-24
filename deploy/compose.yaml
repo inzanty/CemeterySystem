@@ -1,0 +1,40 @@
+services:
+  app:
+    build:
+      context: ..
+    restart: unless-stopped
+    environment:
+      DJANGO_SETTINGS_MODULE: config.production
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set a unique DJANGO_SECRET_KEY in deploy/.env}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,[::1]}
+      DJANGO_PUBLIC_SCHEME: ${DJANGO_PUBLIC_SCHEME:-http}
+      SQLITE_PATH: /var/lib/memoria/db.sqlite3
+      MEDIA_ROOT: /var/lib/memoria/media
+      STATIC_ROOT: /var/www/static
+    volumes:
+      - data:/var/lib/memoria
+      - static:/var/www/static
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8000), timeout=2).close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+  web:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      PUBLIC_SCHEME: ${DJANGO_PUBLIC_SCHEME:-http}
+    ports:
+      - "127.0.0.1:${MEMORIA_PORT:-8080}:80"
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - data:/var/lib/memoria:ro
+      - static:/var/www/static:ro
+volumes:
+  data:
+  static:
