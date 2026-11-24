@@ -738,3 +738,23 @@ footer.container {
         font-size: 12px
     }
 }
+
+
+.nav-links { flex-wrap: wrap; justify-content: flex-end; }
+.moderator-stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.moderator-stats strong { font: 32px Georgia, serif; }
+.moderator-stats p { margin: 8px 0 0; }
+.detail-grid > *, .filter-grid > *, .record > * { min-width: 0; }
+@media(max-width:850px) { .nav-links { justify-content: flex-start; } }
+
+.management-form { max-width: 760px; }
+.management-form fieldset { min-width: 0; margin: 0 0 28px; padding: 20px; border: 1px solid var(--border); border-radius: 5px; }
+.management-form legend { font: 1.4rem Georgia, serif; padding: 0 8px; }
+.required { font-size: 12px; font-weight: 400; }
+[hidden] { display: none !important; }
+.record .prose { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+    .management-form fieldset { padding: 12px; }
+    .actions { flex-wrap: wrap; gap: 12px; }
+    .record { flex-wrap: wrap; }
+}

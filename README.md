@@ -22,8 +22,22 @@ Opcjonalne dane demonstracyjne: `python manage.py seed_demo`.
 ## Funkcje i role
 
 - Gość: wyszukiwanie osób, przeglądanie cmentarzy, grobów i pochówków.
-- Użytkownik: rejestracja, zgłaszanie poprawek i podgląd własnych zgłoszeń.
-- Administrator: zarządzanie ewidencją i rozpatrywanie zgłoszeń. Zaakceptowane poprawki wprowadza ręcznie.
+- Użytkownik: rejestracja, zgłaszanie poprawek i brakujących grobów oraz podgląd własnych zgłoszeń.
+- Moderator: panel `/moderator/` ze statystykami, filtrami, kolejką zgłoszeń i zarządzaniem cmentarzami, sektorami, grobami, osobami zmarłymi oraz pochówkami. Akceptacja brakującego grobu automatycznie tworzy i łączy rekord grobu. Zaakceptowane poprawki wymagają ręcznej aktualizacji ewidencji przez moderatora lub superużytkownika.
+- Administrator: zarządzanie ewidencją i przydzielanie moderatorów. Superużytkownik ma również dostęp do panelu moderatora.
+
+Migracja tworzy grupę `Moderators`. W `/admin/` otwórz użytkownika i dodaj go do tej grupy; konto musi być aktywne. Dostęp do moderacji nie wymaga `is_staff`. Samo `is_staff` nie daje prawa do moderacji.
+
+Zgłoszenie brakującego grobu wskazuje istniejący cmentarz i sektor, rząd, numer oraz opis. Nie tworzy osób zmarłych ani pochówków. Istniejąca lokalizacja blokuje wysłanie i akceptację zgłoszenia. Każda decyzja wymaga odpowiedzi, jest ostateczna i zapisuje moderatora oraz czas rozpatrzenia. W Django admin zgłoszenia są dostępne do podglądu z odnośnikiem do panelu moderatora; decyzje zapisuje się wyłącznie w tym panelu.
+
+Moderatorzy i aktywni superużytkownicy mogą również zarządzać cmentarzami,
+sektorami, grobami, osobami zmarłymi i pochówkami w `/moderator/`.
+Zwykłe konto `is_staff` nie daje dostępu do panelu moderatora.
+Formularz nowego grobu pozwala pozostawić grób pusty, wybrać istniejącą osobę
+lub utworzyć nową osobę wraz z pochówkiem. Kolejne osoby dodaje się przyciskiem
+„Dodaj kolejną osobę” na stronie edycji grobu. Poprawki ze zgłoszeń nadal
+wprowadza się ręcznie; rozpatrzone decyzje pozostają ostateczne.
+Usunięcie wymaga potwierdzenia i nie usuwa powiązanych rekordów.
 
 ## REST API
 

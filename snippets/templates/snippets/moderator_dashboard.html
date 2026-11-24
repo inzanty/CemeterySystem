@@ -1,0 +1,48 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Panel moderatora{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <p class="eyebrow">MODERACJA</p>
+    <h1>Panel moderatora</h1>
+    <p>Rozpatruj poprawki i zgłoszenia brakujących grobów. Statystyki obejmują wszystkie zgłoszenia.</p>
+</div>
+<section aria-label="Zarządzanie ewidencją" class="cards">
+<article class="card"><h2>Cmentarze</h2><a href="{% url 'moderator-cemetery-list' %}">Przeglądaj i edytuj →</a></article>
+<article class="card"><h2>Sektory</h2><a href="{% url 'moderator-section-list' %}">Przeglądaj i edytuj →</a></article>
+<article class="card"><h2>Groby</h2><a href="{% url 'moderator-grave-list' %}">Przeglądaj i edytuj →</a></article>
+<article class="card"><h2>Osoby zmarłe</h2><a href="{% url 'moderator-deceased-list' %}">Przeglądaj i edytuj →</a></article>
+<article class="card"><h2>Pochówki</h2><a href="{% url 'moderator-burial-list' %}">Przeglądaj i edytuj →</a></article>
+</section>
+<div class="section"></div>
+<div class="cards moderator-stats" aria-label="Statystyki zgłoszeń">
+    <div class="card"><strong>{{ stats.total }}</strong><p>Wszystkie</p></div>
+    <div class="card"><strong>{{ stats.pending }}</strong><p>Oczekujące</p></div>
+    <div class="card"><strong>{{ stats.approved }}</strong><p>Zaakceptowane</p></div>
+    <div class="card"><strong>{{ stats.rejected }}</strong><p>Odrzucone</p></div>
+    <div class="card"><strong>{{ stats.recent }}</strong><p>Ostatnie 7 dni</p></div>
+</div>
+<section class="section">
+    <h2>Kolejka zgłoszeń</h2>
+    <form method="get" class="filter-grid panel">
+        {% include 'snippets/form_fields.html' %}
+        <div class="actions"><button>Filtruj</button><a href="{% url 'moderator-dashboard' %}">Wyczyść filtry</a></div>
+    </form>
+    <p class="muted">Najstarsze zgłoszenia są wyświetlane jako pierwsze.</p>
+    <div class="record-list">
+    {% for submission in object_list %}
+        <article class="record">
+            <div class="prose">
+                <span class="badge {{ submission.status }}">{{ submission.get_status_display }}</span>
+                <h3><a href="{% url 'moderator-request-detail' submission.pk %}">Zgłoszenie #{{ submission.pk }} · {{ submission.get_request_type_display }}</a></h3>
+                <p>{{ submission.subject }}</p>
+                <p class="muted">{{ submission.user.username }} · {{ submission.created_at|date:'d.m.Y H:i' }}</p>
+            </div>
+            <a href="{% url 'moderator-request-detail' submission.pk %}">Szczegóły →</a>
+        </article>
+    {% empty %}
+        <div class="empty"><h3>Brak zgłoszeń</h3><p>Nie ma zgłoszeń spełniających wybrane filtry.</p></div>
+    {% endfor %}
+    </div>
+    {% include 'snippets/pagination.html' %}
+</section>
+{% endblock %}

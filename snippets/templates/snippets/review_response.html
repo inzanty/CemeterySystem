@@ -1,0 +1,10 @@
+<h2>Odpowiedź moderatora</h2>
+{% if object.admin_response %}
+    <div class="prose">{{ object.admin_response|linebreaks }}</div>
+{% else %}
+    <p>Nie dodano jeszcze odpowiedzi.</p>
+{% endif %}
+{% if object.reviewed_by %}
+    <p class="muted">Rozpatrzył(a): {{ object.reviewed_by.username }}<br>Data: {{ object.reviewed_at|date:'d.m.Y H:i' }}</p>
+{% endif %}
+<p class="muted">Ostatnia aktualizacja: {{ object.updated_at|date:'d.m.Y H:i' }}</p>

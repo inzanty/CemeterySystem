@@ -1,0 +1,14 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Zgłoś brakujący grób{% endblock %}
+{% block content %}
+<section class="auth panel">
+    <h1>Zgłoś brakujący grób</h1>
+    <p>Wybierz istniejący cmentarz i należący do niego sektor. Po akceptacji moderator utworzy rekord grobu. Opisz lokalizację i źródło informacji.</p>
+    <form method="post">
+        {% csrf_token %}
+        {% include 'snippets/form_fields.html' %}
+        {% if form.existing_grave %}<p><a href="{{ form.existing_grave.get_absolute_url }}">Zobacz istniejący grób →</a></p>{% endif %}
+        <button>Wyślij zgłoszenie</button>
+    </form>
+</section>
+{% endblock %}

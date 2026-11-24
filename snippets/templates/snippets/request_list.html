@@ -4,7 +4,8 @@
     <div class="page-heading">
         <p class="eyebrow">TWOJE KONTO · {{ user.username }}</p>
         <h1>Moje zgłoszenia</h1>
-        <p>Sprawdź status poprawek i odpowiedzi administratora.</p>
+        <p>Sprawdź status poprawek, brakujących grobów i odpowiedzi moderatora.</p>
+        <a class="button" href="{% url 'missing-grave-create' %}">Zgłoś brakujący grób</a>
     </div>
     <div class="record-list">
         {% for correction in object_list %}
@@ -12,9 +13,9 @@
                 <div>
                     <span class="badge {{ correction.status }}">{{ correction.get_status_display }}</span>
                     <h3>
-                        <a href="{{ correction.get_absolute_url }}">Zgłoszenie #{{ correction.pk }}</a>
+                        <a href="{{ correction.get_absolute_url }}">Zgłoszenie #{{ correction.pk }} · {{ correction.get_request_type_display }}</a>
                     </h3>
-                    <p>{{ correction.target }}</p>
+                    <p>{{ correction.subject }}</p>
                     <p class="muted">{{ correction.created_at|date:'d.m.Y H:i' }}</p>
                 </div>
                 <a href="{{ correction.get_absolute_url }}">Szczegóły →</a>

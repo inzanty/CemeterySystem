@@ -1,0 +1,37 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Moderacja · zgłoszenie #{{ object.pk }}{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <a href="{% url 'moderator-dashboard' %}">← Panel moderatora</a>
+    <h1>Zgłoszenie #{{ object.pk }}</h1>
+    <span class="badge {{ object.status }}">{{ object.get_status_display }}</span>
+</div>
+<div class="detail-grid">
+    <section class="panel">
+        <h2>Treść zgłoszenia</h2>
+        <p class="prose">Zgłaszający: {{ object.user.username }}</p>
+        {% include 'snippets/request_contents.html' %}
+    </section>
+    <section class="panel">
+    {% if object.status == 'pending' %}
+        <h2>Rozpatrz zgłoszenie</h2>
+        {% if object.is_missing_grave %}
+            <p>Akceptacja utworzy grób w ewidencji.</p>
+        {% else %}
+            <p>Po akceptacji poprawkę należy wprowadzić ręcznie w ewidencji.</p>
+        {% endif %}
+        <p>Decyzja jest ostateczna. Odpowiedź zobaczy zgłaszający.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% include 'snippets/form_fields.html' %}
+            {% if existing_grave %}<p><a href="{{ existing_grave.get_absolute_url }}">Zobacz istniejący grób →</a></p>{% endif %}
+            <button>Zapisz decyzję</button>
+        </form>
+    {% else %}
+        {% if form.non_field_errors %}<div class="errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        {% include 'snippets/review_response.html' %}
+        <p>Decyzja jest ostateczna.</p>
+    {% endif %}
+    </section>
+</div>
+{% endblock %}

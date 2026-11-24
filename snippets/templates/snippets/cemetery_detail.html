@@ -2,17 +2,20 @@
 {% block title %}{{ object.name }}{% endblock %}
 {% block content %}
     <div class="page-heading">
+        {% if can_moderate %}<a class="button secondary" href="{% url 'moderator-cemetery-edit' object.pk %}">Edytuj rekord</a>{% endif %}
         <a href="{% url 'cemetery-list' %}">← Cmentarze</a>
         <p class="eyebrow">MIEJSCE PAMIĘCI</p>
         <h1>{{ object.name }}</h1>
         <p>{{ object.address|default:'Adres nie został jeszcze podany.' }}</p>
         <a class="button" href="{% url 'search' %}?cemetery={{ object.pk }}">Znajdź pochowane osoby</a>
+        <a class="button secondary" href="{% url 'missing-grave-create' %}?cemetery={{ object.pk }}">Zgłoś brakujący grób</a>
     </div>
     <h2>Sektory cmentarza</h2>
     <div class="cards">
         {% for section in sections %}
             <article class="card">
                 <h3>Sektor {{ section.name }}</h3>
+                {% if can_moderate %}<p><a href="{% url 'moderator-section-edit' section.pk %}">Edytuj sektor</a></p>{% endif %}
                 <p>Liczba grobów: {{ section.grave_count }}</p>
                 <a href="{% url 'search' %}?cemetery={{ object.pk }}&amp;section={{ section.pk }}">Osoby w sektorze →</a>
             </article>

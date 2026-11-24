@@ -2,11 +2,18 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count
+from datetime import timedelta
+
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import CreateView, DetailView, ListView, TemplateView
 from django.views.decorators.http import require_http_methods
-from .forms import CorrectionForm, RegistrationForm, SearchForm, search_deceased
+from .forms import (CorrectionForm, MissingGraveForm, QueueFilterForm, RegistrationForm,
+                    ReviewForm, SearchForm, search_deceased)
+from .moderation import is_moderator, review_request
 from .models import Cemetery, CorrectionRequest, Deceased, Grave
 
 
@@ -94,7 +101,8 @@ class RequestListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return CorrectionRequest.objects.filter(user=self.request.user).select_related(
-            "deceased", "grave__section__cemetery"
+            "deceased", "grave__section__cemetery", "proposed_section__cemetery",
+            "resulting_grave", "reviewed_by"
         )
 
 
@@ -103,7 +111,8 @@ class RequestDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return CorrectionRequest.objects.filter(user=self.request.user).select_related(
-            "deceased", "grave__section__cemetery"
+            "deceased", "grave__section__cemetery", "proposed_section__cemetery",
+            "resulting_grave", "reviewed_by"
         )
 
 
@@ -127,3 +136,80 @@ def request_create(request, kind, pk):
     return render(
         request, "snippets/request_form.html", {"form": form, "target": target}
     )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def missing_grave_create(request):
+    instance = CorrectionRequest(user=request.user, request_type=CorrectionRequest.Type.MISSING_GRAVE)
+    form = MissingGraveForm(
+        request.POST if request.method == "POST" else None,
+        instance=instance, initial={"cemetery": request.GET.get("cemetery")},
+    )
+    if request.method == "POST" and form.is_valid():
+        submission = form.save()
+        messages.success(request, "Zgłoszenie brakującego grobu zostało wysłane.")
+        return redirect(submission)
+    return render(request, "snippets/missing_grave_form.html", {"form": form})
+
+
+@login_required
+@require_http_methods(["GET"])
+def moderator_dashboard(request):
+    if not is_moderator(request.user):
+        raise PermissionDenied
+    records = CorrectionRequest.objects.all()
+    stats = records.aggregate(
+        total=Count("pk"),
+        pending=Count("pk", filter=Q(status="pending")),
+        approved=Count("pk", filter=Q(status="approved")),
+        rejected=Count("pk", filter=Q(status="rejected")),
+        recent=Count("pk", filter=Q(created_at__gte=timezone.now() - timedelta(days=7))),
+    )
+    query = request.GET.copy()
+    if "status" not in query:
+        query["status"] = CorrectionRequest.Status.PENDING
+    form = QueueFilterForm(query)
+    if form.is_valid():
+        for key in ("status", "request_type"):
+            if form.cleaned_data[key]:
+                records = records.filter(**{key: form.cleaned_data[key]})
+    else:
+        records = records.none()
+    records = records.select_related(
+        "user", "deceased", "grave__section__cemetery", "proposed_section__cemetery"
+    ).order_by("created_at", "pk")
+    page = Paginator(records, 20).get_page(request.GET.get("page"))
+    query.pop("page", None)
+    return render(request, "snippets/moderator_dashboard.html", {
+        "stats": stats, "form": form, "object_list": page.object_list,
+        "page_obj": page, "paginator": page.paginator,
+        "is_paginated": page.has_other_pages(), "filter_query": query.urlencode(),
+    })
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def moderator_request_detail(request, pk):
+    if not is_moderator(request.user):
+        raise PermissionDenied
+    records = CorrectionRequest.objects.select_related(
+        "user", "deceased", "grave__section__cemetery", "proposed_section__cemetery",
+        "resulting_grave", "reviewed_by",
+    )
+    submission = get_object_or_404(records, pk=pk)
+    form = ReviewForm(request.POST if request.method == "POST" else None)
+    existing = None
+    if request.method == "POST" and form.is_valid():
+        try:
+            review_request(pk, request.user, form.cleaned_data["decision"], form.cleaned_data["admin_response"])
+        except ValidationError as error:
+            form.add_error(None, error)
+            existing = getattr(error, "existing_grave", None)
+            submission = records.get(pk=pk)
+        else:
+            messages.success(request, "Zgłoszenie zostało rozpatrzone.")
+            return redirect("moderator-request-detail", pk=pk)
+    return render(request, "snippets/moderator_request_detail.html", {
+        "object": submission, "form": form, "existing_grave": existing,
+    })

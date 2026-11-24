@@ -139,6 +139,28 @@ class Burial(models.Model):
 
 
 class CorrectionRequest(models.Model):
+    class Type(models.TextChoices):
+        CORRECTION = "correction", "Poprawka"
+        MISSING_GRAVE = "missing_grave", "Brakujący grób"
+
+    request_type = models.CharField(
+        "rodzaj zgłoszenia", max_length=20, choices=Type.choices, default=Type.CORRECTION
+    )
+    proposed_section = models.ForeignKey(
+        Section, verbose_name="proponowany sektor", null=True, blank=True,
+        on_delete=models.PROTECT, related_name="missing_grave_requests",
+    )
+    proposed_row = models.CharField("rząd", max_length=50, blank=True)
+    proposed_number = models.CharField("numer grobu", max_length=50, blank=True)
+    resulting_grave = models.ForeignKey(
+        Grave, verbose_name="utworzony grób", null=True, blank=True,
+        on_delete=models.PROTECT, related_name="source_requests",
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name="rozpatrzył(a)", null=True, blank=True,
+        on_delete=models.PROTECT, related_name="reviewed_requests",
+    )
+    reviewed_at = models.DateTimeField("rozpatrzono", null=True, blank=True)
     class Status(models.TextChoices):
         PENDING = "pending", "Oczekujące"
         APPROVED = "approved", "Zaakceptowane"
@@ -160,7 +182,7 @@ class CorrectionRequest(models.Model):
     grave = models.ForeignKey(
         Grave, verbose_name="grób", null=True, blank=True, on_delete=models.PROTECT
     )
-    description = models.TextField("opis proponowanej poprawki", max_length=4000)
+    description = models.TextField("opis zgłoszenia", max_length=4000)
     status = models.CharField(
         "status", max_length=10, choices=Status.choices, default=Status.PENDING
     )
@@ -171,25 +193,53 @@ class CorrectionRequest(models.Model):
     updated_at = models.DateTimeField("zaktualizowano", auto_now=True)
 
     class Meta:
-        verbose_name = "zgłoszenie poprawki"
-        verbose_name_plural = "zgłoszenia poprawek"
+        verbose_name = "zgłoszenie"
+        verbose_name_plural = "zgłoszenia"
         ordering = ["-created_at", "-pk"]
         constraints = [
             models.CheckConstraint(
                 check=(
-                    models.Q(deceased__isnull=False, grave__isnull=True)
-                    | models.Q(deceased__isnull=True, grave__isnull=False)
+                    models.Q(request_type="correction", proposed_section__isnull=True,
+                             proposed_row="", proposed_number="", resulting_grave__isnull=True)
+                    & (models.Q(deceased__isnull=False, grave__isnull=True)
+                       | models.Q(deceased__isnull=True, grave__isnull=False))
+                ) | (
+                    models.Q(request_type="missing_grave", deceased__isnull=True,
+                             grave__isnull=True, proposed_section__isnull=False)
+                    & ~models.Q(proposed_row="") & ~models.Q(proposed_number="")
+                    & (models.Q(status="approved", resulting_grave__isnull=False)
+                       | models.Q(status__in=["pending", "rejected"], resulting_grave__isnull=True))
                 ),
-                name="correction_exactly_one_target",
+                name="request_valid_target",
             )
         ]
 
     def clean(self):
         super().clean()
-        if bool(self.deceased_id) == bool(self.grave_id):
-            raise ValidationError(
-                "Wybierz dokładnie jeden rekord: osobę zmarłą lub grób."
-            )
+        if self.request_type == self.Type.CORRECTION:
+            if bool(self.deceased_id) == bool(self.grave_id):
+                raise ValidationError("Wybierz dokładnie jeden rekord: osobę zmarłą lub grób.")
+            if self.proposed_section_id or self.proposed_row or self.proposed_number or self.resulting_grave_id:
+                raise ValidationError("Poprawka nie może zawierać proponowanej lokalizacji.")
+        elif self.request_type == self.Type.MISSING_GRAVE:
+            self.proposed_row = self.proposed_row.strip()
+            self.proposed_number = self.proposed_number.strip()
+            if self.deceased_id or self.grave_id:
+                raise ValidationError("Zgłoszenie brakującego grobu nie może wskazywać rekordu do poprawy.")
+            if not (self.proposed_section_id and self.proposed_row and self.proposed_number):
+                raise ValidationError("Podaj sektor, rząd i numer grobu.")
+
+    @property
+    def is_missing_grave(self):
+        return self.request_type == self.Type.MISSING_GRAVE
+
+    @property
+    def proposed_location(self):
+        return f"{self.proposed_section} — rząd {self.proposed_row}, grób {self.proposed_number}"
+
+    @property
+    def subject(self):
+        return self.proposed_location if self.is_missing_grave else self.target
 
     @property
     def target(self):

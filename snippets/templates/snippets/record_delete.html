@@ -1,0 +1,17 @@
+{% extends 'snippets/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-heading"><h1>{{ title }}</h1></div>
+<section class="panel">
+<p class="prose">{{ object }}</p>
+{% if blocked %}
+    <h2>Nie można usunąć rekordu</h2>
+    <p>Powiązane rekordy chronią ten wpis przed usunięciem. Sprawdź je przed ponowną próbą.</p>
+    <ul>{% for item in blocked %}<li>{% if item.url %}<a href="{{ item.url }}">{{ item.label }}</a>{% else %}{{ item.label }}{% endif %}</li>{% endfor %}</ul>
+    <a href="{{ cancel_url }}">Wróć do edycji</a>
+{% else %}
+    <p>Czy na pewno chcesz usunąć ten rekord?</p>
+    <form method="post">{% csrf_token %}<div class="actions"><button>Usuń rekord</button><a href="{{ cancel_url }}">Anuluj</a></div></form>
+{% endif %}
+</section>
+{% endblock %}

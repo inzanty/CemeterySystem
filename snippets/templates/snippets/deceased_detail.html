@@ -2,6 +2,7 @@
 {% block title %}{{ object }}{% endblock %}
 {% block content %}
     <div class="page-heading">
+        {% if can_moderate %}<a class="button secondary" href="{% url 'moderator-deceased-edit' object.pk %}">Edytuj rekord</a>{% endif %}
         <a href="{% url 'search' %}">← Wyszukiwarka</a>
         <p class="eyebrow">OSOBA ZMARŁA</p>
         <h1>{{ object }}</h1>
@@ -12,6 +13,7 @@
             <h2>Informacje o pochówku</h2>
             {% for burial in object.burials.all %}
                 <article class="burial">
+                    {% if can_moderate %}<p><a href="{% url 'moderator-burial-edit' burial.pk %}">Edytuj pochówek</a> · <a href="{% url 'moderator-deceased-edit' burial.deceased_id %}">Edytuj osobę</a></p>{% endif %}
                     <h3>
                         <a href="{{ burial.grave.section.cemetery.get_absolute_url }}">{{ burial.grave.section.cemetery }}</a>
                     </h3>

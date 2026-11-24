@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from snippets import api, views
+from snippets import api, views, record_management
 
 router = DefaultRouter()
 router.register("cemeteries", api.CemeteryViewSet, basename="cemetery-api")
@@ -35,6 +35,19 @@ urlpatterns = [
     path(
         "requests/new/<str:kind>/<int:pk>/", views.request_create, name="request-create"
     ),
+    path("requests/missing-grave/", views.missing_grave_create, name="missing-grave-create"),
+    path("moderator/", views.moderator_dashboard, name="moderator-dashboard"),
+    path("moderator/requests/<int:pk>/", views.moderator_request_detail, name="moderator-request-detail"),
     path("api/", include(router.urls)),
     path("admin/", admin.site.urls),
 ]
+
+# Explicit named HTML routes share the same moderator authorization on every action.
+for kind, slug in (("cemetery", "cemeteries"), ("section", "sections"),
+                   ("grave", "graves"), ("deceased", "deceased"), ("burial", "burials")):
+    urlpatterns += [
+        path(f"moderator/{slug}/", record_management.record_list, {"kind": kind}, name=f"moderator-{kind}-list"),
+        path(f"moderator/{slug}/new/", record_management.record_form, {"kind": kind}, name=f"moderator-{kind}-create"),
+        path(f"moderator/{slug}/<int:pk>/edit/", record_management.record_form, {"kind": kind}, name=f"moderator-{kind}-edit"),
+        path(f"moderator/{slug}/<int:pk>/delete/", record_management.record_delete, {"kind": kind}, name=f"moderator-{kind}-delete"),
+    ]

@@ -1,0 +1,17 @@
+<p><strong>{{ object.get_request_type_display }}</strong></p>
+{% if object.is_missing_grave %}
+    <p class="prose">{{ object.proposed_location }}</p>
+    {% if object.resulting_grave %}
+        <p><a href="{{ object.resulting_grave.get_absolute_url }}">Zobacz utworzony grób →</a></p>
+    {% endif %}
+{% else %}
+    <p><a href="{{ object.target.get_absolute_url }}">{{ object.target }}</a></p>
+{% endif %}
+<div class="prose">{{ object.description|linebreaks }}</div>
+<p class="muted">Wysłano: {{ object.created_at|date:'d.m.Y H:i' }}</p>
+
+{% if can_moderate %}
+    {% if object.grave_id %}<p><a href="{% url 'moderator-grave-edit' object.grave_id %}">Edytuj grób</a></p>{% endif %}
+    {% if object.deceased_id %}<p><a href="{% url 'moderator-deceased-edit' object.deceased_id %}">Edytuj osobę</a></p>{% endif %}
+    {% if object.resulting_grave_id %}<p><a href="{% url 'moderator-grave-edit' object.resulting_grave_id %}">Edytuj utworzony grób</a></p>{% endif %}
+{% endif %}

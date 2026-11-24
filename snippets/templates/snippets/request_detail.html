@@ -1,28 +1,16 @@
 {% extends 'snippets/base.html' %}
 {% block title %}Zgłoszenie #{{ object.pk }}{% endblock %}
 {% block content %}
-    <div class="page-heading">
-        <a href="{% url 'request-list' %}">← Moje zgłoszenia</a>
-        <h1>Zgłoszenie #{{ object.pk }}</h1>
-        <span class="badge {{ object.status }}">{{ object.get_status_display }}</span>
-    </div>
-    <div class="detail-grid">
-        <section class="panel">
-            <h2>Treść zgłoszenia</h2>
-            <p>
-                <a href="{{ object.target.get_absolute_url }}">{{ object.target }}</a>
-            </p>
-            <div class="prose">{{ object.description|linebreaks }}</div>
-            <p class="muted">Wysłano: {{ object.created_at|date:'d.m.Y H:i' }}</p>
-        </section>
-        <section class="card">
-            <h2>Odpowiedź administratora</h2>
-            {% if object.admin_response %}
-                <div class="prose">{{ object.admin_response|linebreaks }}</div>
-            {% else %}
-                <p>Nie dodano jeszcze odpowiedzi.</p>
-            {% endif %}
-            <p class="muted">Ostatnia aktualizacja: {{ object.updated_at|date:'d.m.Y H:i' }}</p>
-        </section>
-    </div>
+<div class="page-heading">
+    <a href="{% url 'request-list' %}">← Moje zgłoszenia</a>
+    <h1>Zgłoszenie #{{ object.pk }}</h1>
+    <span class="badge {{ object.status }}">{{ object.get_status_display }}</span>
+</div>
+<div class="detail-grid">
+    <section class="panel">
+        <h2>Treść zgłoszenia</h2>
+        {% include 'snippets/request_contents.html' %}
+    </section>
+    <section class="card">{% include 'snippets/review_response.html' %}</section>
+</div>
 {% endblock %}

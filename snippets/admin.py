@@ -56,33 +56,21 @@ class BurialAdmin(admin.ModelAdmin):
 
 @admin.register(CorrectionRequest)
 class CorrectionRequestAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "target", "status", "created_at")
-    list_filter = ("status", "created_at")
-    search_fields = (
-        "description",
-        "user__username",
-        "deceased__surname",
-        "grave__number",
-    )
-    readonly_fields = (
-        "user",
-        "deceased",
-        "grave",
-        "description",
-        "created_at",
-        "updated_at",
-    )
-    fields = (
-        "user",
-        "deceased",
-        "grave",
-        "description",
-        "status",
-        "admin_response",
-        "created_at",
-        "updated_at",
-    )
-    list_select_related = ("user", "deceased", "grave__section__cemetery")
+    list_display = ("id", "request_type", "user", "subject", "status", "created_at", "review_link")
+    list_filter = ("status", "request_type", "created_at")
+    search_fields = ("description", "user__username", "deceased__surname", "grave__number", "proposed_number")
+    readonly_fields = tuple(field.name for field in CorrectionRequest._meta.fields) + ("review_link",)
+    fields = readonly_fields
+    list_select_related = ("user", "deceased", "grave__section__cemetery", "proposed_section__cemetery")
+
+    @admin.display(description="Rozpatrywanie zgłoszenia")
+    def review_link(self, obj):
+        from django.urls import reverse
+        return format_html('<a href="{}">Otwórz w panelu moderatora</a>',
+                           reverse("moderator-request-detail", args=[obj.pk]))
 
     def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False

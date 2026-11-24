@@ -1,0 +1,29 @@
+{% extends 'snippets/base.html' %}
+{% block title %}{{ title }} · Moderacja{% endblock %}
+{% block content %}
+<div class="page-heading">
+    <a href="{% url 'moderator-dashboard' %}">← Panel moderatora</a>
+    <h1>{{ title }}</h1>
+    <a class="button" href="{{ create_url }}">Dodaj rekord</a>
+</div>
+<form method="get" class="filter-grid panel">
+    {% include 'snippets/form_fields.html' %}
+    <div class="actions"><button>Szukaj</button><a href="?">Wyczyść filtry</a></div>
+</form>
+<p class="muted">Liczba wyników: {{ paginator.count }}</p>
+<div class="record-list">
+{% for row in rows %}
+    <article class="record">
+        <div class="prose"><a href="{{ row.edit_url }}">{{ row.object }}</a>
+            {% if row.object.birth_date %}<p>{{ row.object.birth_date|date:'d.m.Y' }} — {{ row.object.death_date|date:'d.m.Y' }}</p>{% endif %}
+            {% if row.object.burial_date %}<p>Pochówek: {{ row.object.burial_date|date:'d.m.Y' }}</p>{% endif %}
+            {% if row.object.address %}<p>{{ row.object.address }}</p>{% endif %}
+        </div>
+        <div class="actions"><a href="{{ row.edit_url }}">Edytuj</a><a href="{{ row.delete_url }}">Usuń</a></div>
+    </article>
+{% empty %}
+    <div class="empty"><h2>Brak rekordów</h2><p>Nie ma rekordów spełniających wybrane filtry.</p></div>
+{% endfor %}
+</div>
+{% include 'snippets/pagination.html' %}
+{% endblock %}

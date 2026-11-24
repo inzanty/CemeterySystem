@@ -1,0 +1,39 @@
+{% extends 'snippets/base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-heading"><a href="{{ list_url }}">← {{ list_title }}</a><h1>{{ title }}</h1></div>
+<form method="post" class="panel management-form">
+    {% csrf_token %}
+    <p class="help">Pola oznaczone „wymagane” należy wypełnić.</p>
+    {% if form.errors %}<div class="errors" role="alert">Nie zapisano rekordu. Popraw wskazane pola.{{ form.non_field_errors }}</div>{% endif %}
+    {% if is_grave %}
+        <fieldset><legend>Lokalizacja grobu</legend>
+        {% for field in location_fields %}{% include 'snippets/record_field.html' %}{% endfor %}
+        </fieldset>
+        {% if guided %}
+        <fieldset><legend>Osoba pochowana</legend>
+            <p class="help">Wybierz sposób dodania osoby. Dla osoby pochowanej wymagana jest data pochówku; dla nowej osoby również imię, nazwisko oraz daty urodzenia i śmierci.</p>
+            {% for field in occupant_fields %}{% include 'snippets/record_field.html' %}{% endfor %}
+        </fieldset>
+        {% else %}<p>Ten formularz zmienia lokalizację grobu. Dane osób i pochówków edytuj poniżej.</p>{% endif %}
+    {% else %}
+        {% for field in form %}{% include 'snippets/record_field.html' %}{% endfor %}
+    {% endif %}
+    <div class="actions"><button>Zapisz</button><a href="{{ list_url }}">Anuluj</a></div>
+</form>
+{% if add_burial_url %}
+<section class="section"><h2>Osoby pochowane</h2>
+    <p><a class="button secondary" href="{{ add_burial_url }}">Dodaj kolejną osobę</a></p>
+    {% for burial in burials %}
+    <article class="record panel"><div>{{ burial.deceased }} · {{ burial.burial_date|date:'d.m.Y' }}</div>
+        <div class="actions"><a href="{% url 'moderator-deceased-edit' burial.deceased_id %}">Edytuj osobę</a><a href="{% url 'moderator-burial-edit' burial.pk %}">Edytuj pochówek</a></div>
+    </article>
+    {% empty %}<p>Brak pochówków w ewidencji tego grobu.</p>{% endfor %}
+</section>
+{% endif %}
+{% if is_grave %}
+{{ sections_data|json_script:'grave-sections' }}
+<script src="{% static 'snippets/record_form.js' %}" defer></script>
+{% endif %}
+{% endblock %}
