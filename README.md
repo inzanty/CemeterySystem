@@ -1,10 +1,17 @@
 # Memoria — ewidencja cmentarzy
 
-Aplikacja Django z polskim interfejsem do wyszukiwania osób zmarłych, przeglądania miejsc pochówku i zgłaszania poprawek.
+Aplikacja Django z polskim interfejsem do wyszukiwania osób zmarłych i miejsc pochówku.
 
-## Uruchomienie
+## Funkcje
 
-Środowisko projektu: Python 3.9 i Django 4.2. Domyślna baza danych: SQLite.
+- Wyszukiwanie osób oraz przeglądanie cmentarzy, sektorów, grobów i pochówków.
+- Konta użytkowników, prywatna lista zapisanych grobów i zgłaszanie poprawek lub brakujących grobów.
+- Panel moderatora do zarządzania ewidencją, zdjęciami i zgłoszeniami oraz przeglądania historii zmian.
+- Publiczny REST API oraz jasny, ciemny i systemowy motyw interfejsu.
+
+## Uruchomienie lokalne
+
+Python 3.9 lub 3.12, Django 4.2, domyślnie SQLite. CI i obraz Docker używają Python 3.12.
 
 ```sh
 python3 -m venv venv
@@ -15,124 +22,46 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Aplikacja: http://127.0.0.1:8000/ · Panel administratora: `/admin/`.
+Aplikacja: http://127.0.0.1:8000/ · Administracja: `/admin/` · Moderacja: `/moderator/`.
 
 Opcjonalne dane demonstracyjne: `python manage.py seed_demo`.
 
-## Funkcje i role
+## Uprawnienia
 
-- Gość: wyszukiwanie osób, przeglądanie cmentarzy, grobów i pochówków.
-- Użytkownik: rejestracja, zgłaszanie poprawek i brakujących grobów oraz podgląd własnych zgłoszeń.
-- Moderator: panel `/moderator/` ze statystykami, filtrami, kolejką zgłoszeń i zarządzaniem cmentarzami, sektorami, grobami, osobami zmarłymi oraz pochówkami. Akceptacja brakującego grobu automatycznie tworzy i łączy rekord grobu. Zaakceptowane poprawki wymagają ręcznej aktualizacji ewidencji przez moderatora lub superużytkownika.
-- Administrator: zarządzanie ewidencją i przydzielanie moderatorów. Superużytkownik ma również dostęp do panelu moderatora.
+Goście mogą przeglądać ewidencję. Zalogowani użytkownicy mogą zapisywać groby,
+wysyłać zgłoszenia i śledzić ich status.
 
-Migracja tworzy grupę `Moderators`. W `/admin/` otwórz użytkownika i dodaj go do tej grupy; konto musi być aktywne. Dostęp do moderacji nie wymaga `is_staff`. Samo `is_staff` nie daje prawa do moderacji.
+Moderator musi mieć aktywne konto w grupie `Moderators`, tworzonej przez migrację.
+Grupę przypisuje administrator w `/admin/`. Aktywny superużytkownik również ma
+dostęp do moderacji; samo `is_staff` go nie zapewnia.
 
-Zgłoszenie brakującego grobu wskazuje istniejący cmentarz i sektor, rząd, numer oraz opis. Nie tworzy osób zmarłych ani pochówków. Istniejąca lokalizacja blokuje wysłanie i akceptację zgłoszenia. Każda decyzja wymaga odpowiedzi, jest ostateczna i zapisuje moderatora oraz czas rozpatrzenia. W Django admin zgłoszenia są dostępne do podglądu z odnośnikiem do panelu moderatora; decyzje zapisuje się wyłącznie w tym panelu.
+Akceptacja zgłoszenia brakującego grobu tworzy grób. Zaakceptowane poprawki
+moderator wprowadza ręcznie. Decyzje w zgłoszeniach są ostateczne.
 
-Moderatorzy i aktywni superużytkownicy mogą również zarządzać cmentarzami,
-sektorami, grobami, osobami zmarłymi i pochówkami w `/moderator/`.
-Zwykłe konto `is_staff` nie daje dostępu do panelu moderatora.
-Formularz nowego grobu pozwala pozostawić grób pusty, wybrać istniejącą osobę
-lub utworzyć nową osobę wraz z pochówkiem. Kolejne osoby dodaje się przyciskiem
-„Dodaj kolejną osobę” na stronie edycji grobu. Poprawki ze zgłoszeń nadal
-wprowadza się ręcznie; rozpatrzone decyzje pozostają ostateczne.
-Usunięcie wymaga potwierdzenia; chronione rekordy blokują operację. Zdjęcia i zapisane wpisy grobu są usuwane kaskadowo.
+## Konfiguracja i wdrożenie
+
+Zmienne środowiskowe opisuje [.env.example](.env.example).
+Plik `.env` nie jest automatycznie wczytywany; w PyCharm ustaw zmienne w konfiguracji uruchomienia.
+
+- PostgreSQL: zainstaluj `requirements-postgres.txt` i ustaw `DB_ENGINE=postgresql` oraz zmienne `DB_*`.
+- Zdjęcia: katalog `MEDIA_ROOT` (domyślnie `media/`), publiczny adres `/media/`. Obsługiwane JPEG i PNG do 5 MiB i 20 megapikseli.
+- Docker, Gunicorn, Nginx i trwałe wolumeny: [instrukcja wdrożenia](deploy/README.md).
+
+Domyślna konfiguracja służy do pracy lokalnej. Przed publicznym wdrożeniem
+zaktualizuj Python i Django do wspieranych wersji oraz zapewnij konfigurację
+produkcyjną, HTTPS, trwały magazyn zdjęć i kopie zapasowe bazy oraz plików.
 
 ## REST API
 
-Publiczny odczyt list i szczegółów: `/api/cemeteries/`, `/api/graves/`, `/api/deceased/` oraz odpowiadające im adresy `<id>/`.
+Publiczny odczyt: `/api/cemeteries/`, `/api/graves/`, `/api/deceased/`.
+Szczegóły rekordu: `<endpoint><id>/`.
 
-Wyszukiwanie osób: `q`, `cemetery`, `section`, `death_year_from`, `death_year_to`. Paginacja: `page`, po 20 rekordów na stronę.
+Filtry osób: `q`, `cemetery`, `section`, `death_year_from`, `death_year_to`.
+Paginacja: parametr `page`, po 20 rekordów.
 
-## Konfiguracja
+## Testy
 
-Zmienne środowiskowe opisuje `.env.example`; plik `.env` nie jest automatycznie wczytywany. PostgreSQL wymaga instalacji `requirements-postgres.txt` oraz ustawienia `DB_ENGINE=postgresql` i zmiennych `DB_*`.
-
-Konfiguracja domyślna służy do pracy lokalnej. Publiczne wdrożenie wymaga aktualizacji do wspieranych wersji Python/Django i konfiguracji produkcyjnej.
-
-## Zapisane groby, zdjęcia i historia
-
-Zalogowany użytkownik może zapisywać groby na stronie szczegółów i przeglądać
-„Moje zapisane groby” (`/saved-graves/`, 20 wpisów na stronę). Zapisanie i usunięcie
-wpisu wymaga POST z CSRF; wielokrotne wykonanie jest bezpieczne. Wpisy są prywatne
-i znikają po usunięciu użytkownika lub grobu.
-
-Zdjęcia są publiczne na stronie grobu. Dodawać i usuwać je mogą wyłącznie aktywni
-moderatorzy i superużytkownicy, na stronie edycji grobu. Usunięcie wymaga
-potwierdzenia. Obsługiwane są nieruchome JPEG i PNG do 5 MiB (5 × 1024² bajtów)
-i 20 000 000 pikseli. Pillow sprawdza zawartość i ponownie koduje obraz, usuwając
-metadane. Nazwy plików są generowane przez aplikację. Usunięcie zdjęcia lub grobu
-usuwa plik dopiero po zatwierdzeniu transakcji; nieudany zapis rekordu zdjęcia
-usuwa nowy plik. Zdjęcia i zapisane wpisy są usuwane kaskadowo; istniejące relacje
-chronione (np. pochówki i zgłoszenia) nadal blokują usunięcie grobu.
-
-`MEDIA_ROOT` wskazuje katalog zdjęć (domyślnie `media/`, pomijany w Git);
-`MEDIA_URL` ma wartość `/media/`. Serwer Django udostępnia pliki lokalnie tylko
-przy `DEBUG=True`. W produkcji skonfiguruj serwer WWW lub magazyn obiektowy do
-publicznego odczytu `/media/`, bez wykonywania przesłanych plików. Zapewnij trwały
-wolumen i prawa zapisu dla aplikacji.
-`collectstatic` nie kopiuje zdjęć. Nowa instalacja wymaga `pip install -r requirements.txt`
-i `python manage.py migrate`.
-
-Historia (`/moderator/history/`, 20 wpisów na stronę) jest dostępna wyłącznie dla
-aktywnych moderatorów i superużytkowników, również przy podglądzie w Django admin.
-Zapisuje utworzenie, rzeczywistą zmianę i usunięcie cmentarza, sektora, grobu,
-osoby zmarłej i pochówku oraz dodanie/usunięcie zdjęcia. Obejmuje panel moderatora,
-Django admin (także usuwanie zbiorcze), tworzenie grobu z osobą i pochówkiem oraz
-akceptację zgłoszenia brakującego grobu. Wpis zawiera autora, czas, nazwę rekordu,
-identyfikator i wartości pól przed/po zmianie. Daty mają format ISO 8601,
-a klucze obce są liczbami ID. Historia pokazuje obok ID nazwy powiązanych rekordów,
-zapamiętane osobno przed i po zmianie. Nazwy te pozostają po zmianie lub usunięciu
-powiązania. Dla starszych wpisów bez zapisanych nazw dostępna nazwa bieżąca jest
-wyraźnie oznaczona; brakujący rekord jest opisany jako usunięty. Brak zmian nie tworzy wpisu; wycofanie transakcji
-wycofuje również historię. Historia pozostaje po usunięciu rekordu i nie ma akcji
-edycji ani usuwania w aplikacji lub adminie. Po usunięciu konta autora pozostaje
-historia z pustym autorem.
-
-Historia zaczyna się po instalacji migracji; nie odtwarza dawnych zdarzeń.
-Zapisy prywatnych grobów, komendy seed i bezpośrednie operacje ORM/skryptów nie
-są objęte historią przypisywaną użytkownikowi. Publiczny REST API pozostaje bez zmian.
-
-Weryfikacja: `python manage.py test` oraz `python manage.py check`.
-
-
-## Nawigacja i uruchomienie z trwałymi zdjęciami
-
-Kategorie nawigacji: „Odkrywaj”, „Zarządzanie”, „Moje konto”. Bieżąca kategoria
-jest podkreślona, a bieżąca strona oznaczona w menu. Menu zamyka się po kliknięciu
-poza nim albo po Escape; Escape przenosi fokus na nagłówek kategorii.
-
-Gotowy zestaw Gunicorn + Nginx z trwałymi wolumenami dla bazy i zdjęć znajduje się
-w [deploy/README.md](deploy/README.md). Nie uruchamia żadnych zadań tworzenia kopii.
-
-## Motyw interfejsu
-
-Przycisk motywu w nagłówku przełącza kolejno tryby „Systemowy” → „Jasny” → „Ciemny”.
-Ikona monitora, słońca lub księżyca wskazuje bieżący tryb. Etykieta dostępności
-i podpowiedź opisują bieżący tryb oraz tryb po następnym kliknięciu.
-Domyślny tryb systemowy śledzi ustawienia urządzenia. Wybór jest zapamiętywany
-w bieżącej przeglądarce (`localStorage`, klucz `memoria-theme`) i synchronizowany
-między kartami. Przy zablokowanym magazynie działa do opuszczenia strony.
-Bez JavaScript interfejs korzysta z ustawień urządzenia, a przycisk jest ukryty.
-Panel Django admin ma własne sterowanie motywem.
-
-Testy logiki motywu (Node.js 18+): `node --test snippets/tests/theme.test.cjs`.
-
-## Automatyczne testy (GitHub Actions)
-
-Workflow [Tests](.github/workflows/tests.yml) uruchamia się po każdym pushu
-na dowolną gałąź oraz przy otwarciu i aktualizacji pull requestu. Można go również
-uruchomić ręcznie w zakładce Actions na GitHubie. Lokalny commit uruchomi CI po
-wysłaniu go poleceniem `git push`; przy pushu kilku commitów testowany jest
-najnowszy stan gałęzi.
-
-Dwa niezależne zadania sprawdzają konfigurację Django, brak niezapisanych migracji
-i pełny zestaw testów Django (Python 3.12, SQLite) oraz testy JavaScript przycisku
-motywu (Node.js 24). Workflow nie wymaga sekretów ani zewnętrznej bazy danych.
-Wyniki są dostępne w zakładce Actions i w kontrolach pull requestu.
-
-Te same kontrole można wykonać lokalnie:
+W aktywnym środowisku Python; testy JavaScript wymagają Node.js 18+:
 
 ```sh
 python manage.py check
@@ -140,3 +69,6 @@ python manage.py makemigrations --check --dry-run
 python manage.py test --noinput
 node --test snippets/tests/*.test.cjs
 ```
+
+[GitHub Actions](.github/workflows/tests.yml) wykonuje te kontrole po każdym pushu
+oraz przy otwarciu i aktualizacji pull requestu. Wyniki są dostępne w zakładce Actions.
