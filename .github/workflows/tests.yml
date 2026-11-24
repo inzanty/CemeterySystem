@@ -17,9 +17,12 @@ jobs:
       DJANGO_SETTINGS_MODULE: config.settings
       DJANGO_DEBUG: "true"
       DB_ENGINE: sqlite3
-      SQLITE_PATH: ${{ runner.temp }}/memoria.sqlite3
-      MEDIA_ROOT: ${{ runner.temp }}/memoria-media
     steps:
+      - name: Configure temporary storage
+        run: |
+          echo "SQLITE_PATH=$RUNNER_TEMP/memoria.sqlite3" >> "$GITHUB_ENV"
+          echo "MEDIA_ROOT=$RUNNER_TEMP/memoria-media" >> "$GITHUB_ENV"
+
       - name: Check out repository
         uses: actions/checkout@v6
         with:
