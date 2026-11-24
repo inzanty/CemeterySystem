@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from snippets import api, views, record_management
+from snippets import api, views, record_management, features
 
 router = DefaultRouter()
 router.register("cemeteries", api.CemeteryViewSet, basename="cemetery-api")
@@ -51,3 +51,16 @@ for kind, slug in (("cemetery", "cemeteries"), ("section", "sections"),
         path(f"moderator/{slug}/<int:pk>/edit/", record_management.record_form, {"kind": kind}, name=f"moderator-{kind}-edit"),
         path(f"moderator/{slug}/<int:pk>/delete/", record_management.record_delete, {"kind": kind}, name=f"moderator-{kind}-delete"),
     ]
+
+urlpatterns += [
+    path("saved-graves/", features.saved_graves, name="saved-graves"),
+    path("graves/<int:pk>/save/", features.save_grave, name="grave-save"),
+    path("graves/<int:pk>/unsave/", features.unsave_grave, name="grave-unsave"),
+    path("moderator/graves/<int:pk>/photos/", features.photo_upload, name="photo-upload"),
+    path("moderator/photos/<int:pk>/delete/", features.photo_delete, name="photo-delete"),
+    path("moderator/history/", features.history, name="record-history"),
+]
+
+from django.conf import settings
+from django.conf.urls.static import static
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

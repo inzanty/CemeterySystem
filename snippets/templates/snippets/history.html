@@ -1,0 +1,14 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Historia rekordów{% endblock %}
+{% block content %}
+<div class="page-heading"><a href="{% url 'moderator-dashboard' %}">← Panel moderatora</a><p class="eyebrow">EWIDENCJA ZMIAN</p><h1>Historia rekordów</h1><p>Dodania, zmiany i usunięcia zapisane od uruchomienia historii.</p></div>
+<form method="get" class="panel filter-grid">
+<div class="field"><label for="history-type">Rodzaj rekordu</label><select id="history-type" name="type"><option value="">Wszystkie</option>{% for value,label in types %}<option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+<div class="field"><label for="history-action">Czynność</label><select id="history-action" name="action"><option value="">Wszystkie</option>{% for value,label in actions %}<option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+<div class="field"><label for="history-record">ID rekordu</label><input id="history-record" name="record" value="{{ record_id }}" inputmode="numeric"></div>
+<div class="actions"><button>Filtruj</button><a href="{% url 'record-history' %}">Wyczyść filtry</a></div></form>
+{% for row in rows %}<article class="panel history-entry"><h2>{{ row.entry.get_action_display }} · {{ row.entry.record_label }}</h2>
+<p class="muted">{{ row.type_label }} #{{ row.entry.entity_id }} · {{ row.entry.timestamp|date:'d.m.Y H:i:s' }} · {{ row.entry.editor|default:'Usunięte konto' }}</p>
+<dl class="history-changes">{% for change in row.changes %}<div><dt>{{ change.label }}</dt><dd><span>{{ change.before|default_if_none:'—' }}</span> → <span>{{ change.after|default_if_none:'—' }}</span></dd></div>{% endfor %}</dl></article>
+{% empty %}<section class="panel"><p>Brak zmian dla wybranych filtrów.</p></section>{% endfor %}
+{% include 'snippets/pagination.html' %}{% endblock %}

@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,6 +16,8 @@ from .management_forms import (BurialForm, CemeteryForm, DeceasedForm, GraveCrea
                                GraveForm, RecordFilterForm, SectionForm)
 from .models import Burial, Cemetery, CorrectionRequest, Deceased, Grave, Section
 from .moderation import is_moderator
+from .audit import audit_changes
+from django.db.models import PROTECT
 
 
 RECORDS = {
@@ -104,7 +106,7 @@ def record_form(request, kind, pk=None):
     form = form_class(request.POST if request.method == "POST" else None, instance=record, initial=initial)
     if request.method == "POST" and form.is_valid():
         try:
-            with transaction.atomic():
+            with audit_changes(request.user):
                 record = form.save()
         except ValidationError as error:
             form.add_error(None, "; ".join(error.messages))
@@ -125,7 +127,11 @@ def record_form(request, kind, pk=None):
     context = {"form": form, "object": record, "title": f"{'Edytuj' if pk else 'Dodaj'} {singular}",
                "list_url": record_url(kind, "list"), "list_title": title,
                "guided": guided, "is_grave": kind == "grave"}
+    if pk:
+        context["history_kind"] = kind
     if kind == "grave":
+        from .photo_forms import GravePhotoForm
+        context["photo_form"] = GravePhotoForm()
         context["sections_data"] = list(Section.objects.values("id", "cemetery_id", "name"))
         context["location_fields"] = [form[key] for key in ("cemetery", "section", "row", "number")]
         if guided:
@@ -144,7 +150,7 @@ def record_delete(request, kind, pk):
     blocked = []
     if request.method == "POST":
         try:
-            with transaction.atomic():
+            with audit_changes(request.user):
                 record.delete()
         except ProtectedError as error:
             blocked = sorted((linked_record(item) for item in error.protected_objects), key=lambda item: item["label"])
@@ -152,8 +158,10 @@ def record_delete(request, kind, pk):
             messages.success(request, "Usunięto rekord.")
             return redirect(record_url(kind, "list"))
     else:
-        # All reverse foreign keys on these models are protected; inspect without deleting.
+        # Only protected relations block deletion; photos and saved entries cascade.
         for relation in model._meta.related_objects:
+            if relation.on_delete is not PROTECT:
+                continue
             for item in getattr(record, relation.get_accessor_name()).all():
                 blocked.append(linked_record(item))
     return render(request, "snippets/record_delete.html", {

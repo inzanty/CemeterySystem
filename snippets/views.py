@@ -83,6 +83,11 @@ class GraveDetailView(DetailView):
     )
     template_name = "snippets/grave_detail.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_saved"] = self.request.user.is_authenticated and self.object.saved_entries.filter(user=self.request.user).exists()
+        return context
+
 
 class RegisterView(CreateView):
     form_class = RegistrationForm

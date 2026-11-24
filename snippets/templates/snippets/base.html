@@ -10,6 +10,7 @@
             {% block title %}Ewidencja cmentarzy{% endblock %}
         · Memoria</title>
         <link rel="stylesheet" href="{% static 'snippets/style.css' %}">
+        <link rel="stylesheet" href="{% static 'snippets/navigation.css' %}">
     </head>
     <body>
         <a class="skip" href="#main">Przejdź do treści</a>
@@ -18,19 +19,36 @@
                 <a class="brand" href="{% url 'home' %}">
                     <span class="brand-mark" aria-hidden="true">M</span> Memoria</a>
                 <div class="nav-links">
-                    <a href="{% url 'search' %}">Wyszukiwarka</a>
-                    <a href="{% url 'cemetery-list' %}">Cmentarze</a>
-                    <a href="{% url 'missing-grave-create' %}">Zgłoś brakujący grób</a>
-                    {% if can_moderate %}<a href="{% url 'moderator-dashboard' %}">Panel moderatora</a>{% endif %}
+                    <details class="nav-group" name="navigation">
+                        <summary>Odkrywaj</summary>
+                        <ul class="nav-menu">
+                            <li><a href="{% url 'search' %}">Wyszukiwarka</a></li>
+                            <li><a href="{% url 'cemetery-list' %}">Cmentarze</a></li>
+                            <li><a href="{% url 'missing-grave-create' %}">Zgłoś brakujący grób</a></li>
+                        </ul>
+                    </details>
+                    {% if can_moderate or user.is_staff %}
+                        <details class="nav-group" name="navigation">
+                            <summary>Zarządzanie</summary>
+                            <ul class="nav-menu">
+                                {% if can_moderate %}
+                                    <li><a href="{% url 'moderator-dashboard' %}">Panel moderatora</a></li>
+                                {% endif %}
+                                {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Administracja</a></li>{% endif %}
+                            </ul>
+                        </details>
+                    {% endif %}
                     {% if user.is_authenticated %}
-                        <a href="{% url 'request-list' %}">Moje zgłoszenia</a>
-                        {% if user.is_staff %}
-                            <a href="{% url 'admin:index' %}">Administracja</a>
-                        {% endif %}
-                        <form method="post" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button class="nav-button">Wyloguj</button>
-                        </form>
+                        <details class="nav-group" name="navigation">
+                            <summary>Moje konto</summary>
+                            <ul class="nav-menu">
+                                <li><a href="{% url 'saved-graves' %}">Moje zapisane groby</a></li>
+                                <li><a href="{% url 'request-list' %}">Moje zgłoszenia</a></li>
+                                <li><form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}<button class="nav-button">Wyloguj</button>
+                                </form></li>
+                            </ul>
+                        </details>
                     {% else %}
                         <a href="{% url 'login' %}">Zaloguj się</a>
                         <a class="button small" href="{% url 'register' %}">Utwórz konto</a>

@@ -1,0 +1,9 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Moje zapisane groby{% endblock %}
+{% block content %}
+<div class="page-heading"><p class="eyebrow">MOJA PAMIĘĆ</p><h1>Moje zapisane groby</h1><p>Miejsca, do których chcesz wracać.</p></div>
+{% for saved in page_obj %}<article class="panel record"><div><h2><a href="{{ saved.grave.get_absolute_url }}">{{ saved.grave }}</a></h2><p class="muted">Zapisano {{ saved.created_at|date:'d.m.Y' }}</p></div>
+<form method="post" action="{% url 'grave-unsave' saved.grave_id %}">{% csrf_token %}<button class="secondary">Usuń z zapisanych</button></form></article>
+{% empty %}<section class="panel"><p>Nie masz jeszcze zapisanych grobów.</p><a href="{% url 'search' %}">Przejdź do wyszukiwarki</a></section>{% endfor %}
+{% include 'snippets/pagination.html' %}
+{% endblock %}

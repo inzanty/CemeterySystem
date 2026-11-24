@@ -1,0 +1,5 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Dodaj zdjęcie{% endblock %}
+{% block content %}<div class="page-heading"><h1>Dodaj zdjęcie grobu</h1><p>{{ object }}</p></div>
+<form method="post" enctype="multipart/form-data" class="panel" action="{% url 'photo-upload' object.pk %}">{% csrf_token %}
+{% include 'snippets/form_fields.html' %}<div class="actions"><button>Dodaj zdjęcie</button><a href="{% url 'moderator-grave-edit' object.pk %}">Wróć do edycji</a></div></form>{% endblock %}

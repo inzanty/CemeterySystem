@@ -1,0 +1,9 @@
+<div class="photo-gallery">
+{% for photo in object.photos.all %}
+<figure class="panel">
+    <a href="{{ photo.image.url }}"><img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Zdjęcie grobu' }}" loading="lazy"></a>
+    {% if photo.caption %}<figcaption>{{ photo.caption }}</figcaption>{% endif %}
+    {% if manage_photos %}<p><a href="{% url 'photo-delete' photo.pk %}">Usuń zdjęcie</a> · <a href="{% url 'record-history' %}?type=gravephoto&amp;record={{ photo.pk }}">Historia zdjęcia</a></p>{% endif %}
+</figure>
+{% empty %}<p>Brak zdjęć tego grobu.</p>{% endfor %}
+</div>

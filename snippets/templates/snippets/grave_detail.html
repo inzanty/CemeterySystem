@@ -8,6 +8,17 @@
         <h1>Grób {{ object.number }}</h1>
         <p>{{ object.section.cemetery }} · Sektor {{ object.section.name }} · Rząd {{ object.row }}</p>
     </div>
+    <div class="actions section">
+    {% if user.is_authenticated %}
+        <form method="post" action="{% if is_saved %}{% url 'grave-unsave' object.pk %}{% else %}{% url 'grave-save' object.pk %}{% endif %}">{% csrf_token %}
+            <button>{% if is_saved %}Usuń z zapisanych{% else %}Zapisz grób{% endif %}</button>
+        </form>
+    {% else %}<a class="button secondary" href="{% url 'login' %}?next={{ request.path|urlencode }}">Zaloguj się, aby zapisać grób</a>{% endif %}
+    {% if can_moderate %}<a href="{% url 'record-history' %}?type=grave&amp;record={{ object.pk }}">Historia rekordu</a>{% endif %}
+    </div>
+    <section class="section"><h2>Zdjęcia grobu</h2>
+        {% include 'snippets/photo_gallery.html' %}
+    </section>
     <div class="detail-grid">
         <section class="panel">
             <h2>Pochowane osoby</h2>

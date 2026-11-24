@@ -27,6 +27,8 @@ class RequestMigrationTests(TransactionTestCase):
             executor = MigrationExecutor(connection)
             executor.migrate(latest)
             apps = executor.loader.project_state(latest).apps
+            for model_name in ("RecordChange", "GravePhoto", "SavedGrave"):
+                self.assertEqual(apps.get_model("snippets", model_name).objects.count(), 0)
             Request = apps.get_model("snippets", "CorrectionRequest")
             for pk, created, updated, status in ids:
                 item = Request.objects.get(pk=pk)

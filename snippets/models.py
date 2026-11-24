@@ -250,3 +250,51 @@ class CorrectionRequest(models.Model):
 
     def get_absolute_url(self):
         return reverse("request-detail", args=[self.pk])
+
+
+class SavedGrave(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="saved_graves")
+    grave = models.ForeignKey(Grave, on_delete=models.CASCADE, related_name="saved_entries")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        constraints = [models.UniqueConstraint(fields=["user", "grave"], name="unique_saved_grave")]
+
+
+class GravePhoto(models.Model):
+    grave = models.ForeignKey(Grave, on_delete=models.CASCADE, related_name="photos", verbose_name="grób")
+    image = models.ImageField("zdjęcie", upload_to="grave_photos/")
+    caption = models.CharField("podpis", max_length=300, blank=True)
+    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, verbose_name="dodał(a)")
+    uploaded_at = models.DateTimeField("dodano", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-uploaded_at", "-pk"]
+        verbose_name = "zdjęcie grobu"
+        verbose_name_plural = "zdjęcia grobów"
+
+    def __str__(self):
+        return f"Zdjęcie #{self.pk} — {self.grave}"
+
+
+class RecordChange(models.Model):
+    class Action(models.TextChoices):
+        CREATE = "create", "Dodanie"
+        UPDATE = "update", "Zmiana"
+        DELETE = "delete", "Usunięcie"
+
+    entity_type = models.CharField("rodzaj rekordu", max_length=30)
+    entity_id = models.PositiveBigIntegerField("ID rekordu")
+    action = models.CharField("czynność", max_length=10, choices=Action.choices)
+    editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, verbose_name="autor")
+    timestamp = models.DateTimeField("czas", auto_now_add=True)
+    record_label = models.TextField("rekord")
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+
+    class Meta:
+        ordering = ["-timestamp", "-pk"]
+        indexes = [models.Index(fields=["entity_type", "entity_id"])]
+        verbose_name = "zmiana rekordu"
+        verbose_name_plural = "historia rekordów"

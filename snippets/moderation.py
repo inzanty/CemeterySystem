@@ -3,6 +3,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from .models import CorrectionRequest, Grave
+from .audit import audit_changes
 
 
 def is_moderator(user):
@@ -25,7 +26,8 @@ def review_request(pk, reviewer, decision, response):
         raise ValidationError("Wybierz prawidłową decyzję.")
     if not response or len(response) > 4000:
         raise ValidationError("Podaj odpowiedź (maksymalnie 4000 znaków).")
-    return _review_pending_request(pk, reviewer, decision, response)
+    with audit_changes(reviewer):
+        return _review_pending_request(pk, reviewer, decision, response)
 
 
 @transaction.atomic

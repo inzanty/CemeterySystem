@@ -1,0 +1,5 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Usuń zdjęcie{% endblock %}
+{% block content %}<div class="page-heading"><h1>Usuń zdjęcie</h1><p>{{ object.grave }}</p></div>
+<section class="panel"><img class="photo-preview" src="{{ object.image.url }}" alt="{{ object.caption|default:'Zdjęcie grobu' }}"><p>{{ object.caption }}</p>
+<p>Czy na pewno chcesz usunąć to zdjęcie?</p><form method="post">{% csrf_token %}<div class="actions"><button>Usuń zdjęcie</button><a href="{% url 'moderator-grave-edit' object.grave_id %}">Anuluj</a></div></form></section>{% endblock %}

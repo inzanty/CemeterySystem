@@ -4,6 +4,7 @@
 <div class="page-heading"><h1>{{ title }}</h1></div>
 <section class="panel">
 <p class="prose">{{ object }}</p>
+{% if object.photos.count or object.saved_entries.count %}<p>Wraz z grobem zostaną usunięte zdjęcia ({{ object.photos.count }}) i wpisy zapisanych grobów ({{ object.saved_entries.count }}).</p>{% endif %}
 {% if blocked %}
     <h2>Nie można usunąć rekordu</h2>
     <p>Powiązane rekordy chronią ten wpis przed usunięciem. Sprawdź je przed ponowną próbą.</p>
