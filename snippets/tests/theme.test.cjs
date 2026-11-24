@@ -7,7 +7,11 @@ const source = fs.readFileSync('snippets/static/snippets/theme.js', 'utf8');
 
 function page({ stored = null, dark = false, blocked = false, writeBlocked = false, legacy = false } = {}) {
     const windowEvents = {}, documentEvents = {}, buttonEvents = {};
+    const icons = ['light', 'dark', 'system'].map(mode => ({
+        dataset: { themeIcon: mode }, style: { display: 'none' },
+    }));
     const button = { hidden: true, dataset: {}, attributes: {},
+        querySelectorAll: () => icons,
         setAttribute(name, value) { this.attributes[name] = value; },
         addEventListener: (name, fn) => { buttonEvents[name] = fn; } };
     const root = { dataset: {} };
@@ -27,7 +31,7 @@ function page({ stored = null, dark = false, blocked = false, writeBlocked = fal
         addEventListener: (name, fn) => { documentEvents[name] = fn; } };
     vm.runInNewContext(source, { window, document });
     return {
-        root, button,
+        root, button, icons,
         ready: () => documentEvents.DOMContentLoaded(),
         click: () => buttonEvents.click(),
         choose: value => {
@@ -111,8 +115,16 @@ test('one button cycles system, light, dark with current and next accessible lab
         ['system', 'Motyw: Systemowy. Zmień na Jasny.'],
     ]) {
         assert.equal(p.button.dataset.preference, mode);
+        assert.deepEqual(p.icons.filter(icon => icon.style.display !== 'none').map(icon => icon.dataset.themeIcon), [mode]);
         assert.equal(p.button.attributes['aria-label'], label);
         assert.equal(p.button.title, label);
         p.click();
     }
+});
+
+test('template requests updated script and stylesheet and initially hides all icons', () => {
+    const template = fs.readFileSync('snippets/templates/snippets/base.html', 'utf8');
+    assert.match(template, /theme\.js' %}\?v=theme-toggle-2/);
+    assert.match(template, /style\.css' %}\?v=theme-toggle-2/);
+    assert.equal((template.match(/data-theme-icon="(?:light|dark|system)" style="display: none"/g) || []).length, 3);
 });

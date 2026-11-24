@@ -884,7 +884,4 @@ footer.container {
     border-radius: 50%;
 }
 .theme-toggle:hover { background: var(--menu-hover); color: var(--link-hover); }
-.theme-icon { display: none; }
-.theme-toggle[data-preference="light"] .theme-icon-light,
-.theme-toggle[data-preference="dark"] .theme-icon-dark,
-.theme-toggle[data-preference="system"] .theme-icon-system { display: block; }
+.theme-icon { pointer-events: none; }

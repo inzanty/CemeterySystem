@@ -14,6 +14,9 @@
         root.dataset.theme = preference === "system" ? (device.matches ? "dark" : "light") : preference;
         if (button) {
             button.dataset.preference = preference;
+            button.querySelectorAll("[data-theme-icon]").forEach((icon) => {
+                icon.style.display = icon.dataset.themeIcon === preference ? "block" : "none";
+            });
             const label = `Motyw: ${labels[preference]}. Zmień na ${labels[nextMode()]}.`;
             button.setAttribute("aria-label", label);
             button.title = label;
