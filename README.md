@@ -118,3 +118,25 @@ Bez JavaScript interfejs korzysta z ustawień urządzenia, a przycisk jest ukryt
 Panel Django admin ma własne sterowanie motywem.
 
 Testy logiki motywu (Node.js 18+): `node --test snippets/tests/theme.test.cjs`.
+
+## Automatyczne testy (GitHub Actions)
+
+Workflow [Tests](.github/workflows/tests.yml) uruchamia się po każdym pushu
+na dowolną gałąź oraz przy otwarciu i aktualizacji pull requestu. Można go również
+uruchomić ręcznie w zakładce Actions na GitHubie. Lokalny commit uruchomi CI po
+wysłaniu go poleceniem `git push`; przy pushu kilku commitów testowany jest
+najnowszy stan gałęzi.
+
+Dwa niezależne zadania sprawdzają konfigurację Django, brak niezapisanych migracji
+i pełny zestaw testów Django (Python 3.12, SQLite) oraz testy JavaScript przycisku
+motywu (Node.js 24). Workflow nie wymaga sekretów ani zewnętrznej bazy danych.
+Wyniki są dostępne w zakładce Actions i w kontrolach pull requestu.
+
+Te same kontrole można wykonać lokalnie:
+
+```sh
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test --noinput
+node --test snippets/tests/*.test.cjs
+```
