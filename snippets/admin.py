@@ -36,6 +36,14 @@ class CemeteryAdmin(AuditedAdmin):
 
 @admin.register(Section)
 class SectionAdmin(AuditedAdmin):
+    def save_model(self, request, obj, form, change):
+        moved = change and Section.objects.get(pk=obj.pk).cemetery_id != obj.cemetery_id
+        super().save_model(request, obj, form, change)
+        if moved:
+            for grave in obj.graves.filter(map_x__isnull=False):
+                grave.map_x = grave.map_y = None
+                grave.save(update_fields=["map_x", "map_y"])
+
     list_display = ("name", "cemetery")
     list_filter = ("cemetery",)
     search_fields = ("name", "cemetery__name")
@@ -45,6 +53,15 @@ class SectionAdmin(AuditedAdmin):
 
 @admin.register(Grave)
 class GraveAdmin(AuditedAdmin):
+    exclude = ("map_x", "map_y")
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            previous = Grave.objects.select_related("section").get(pk=obj.pk)
+            if previous.section.cemetery_id != obj.section.cemetery_id:
+                obj.map_x = obj.map_y = None
+        super().save_model(request, obj, form, change)
+
     list_display = ("number", "row", "section", "public_record")
     list_filter = ("section__cemetery", "section")
     search_fields = ("number", "row", "section__name", "section__cemetery__name")

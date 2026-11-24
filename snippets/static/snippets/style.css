@@ -885,3 +885,22 @@ footer.container {
 }
 .theme-toggle:hover { background: var(--menu-hover); color: var(--link-hover); }
 .theme-icon { pointer-events: none; }
+
+/* Cemetery plans keep markers anchored to percentages of the uploaded image. */
+.cemetery-map { min-width: 0; }
+.map-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 12px; }
+.map-toolbar .secondary, button.secondary { background: transparent; color: var(--green); }
+.map-toolbar .secondary:hover, button.secondary:hover { background: var(--menu-hover); color: var(--link-hover); }
+button:disabled { opacity: .55; cursor: default; }
+.map-viewport { max-height: 65vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--cream); }
+.map-viewport:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.map-canvas { position: relative; width: 100%; min-width: 100%; }
+.map-canvas > img { display: block; width: 100%; height: auto; user-select: none; }
+.map-marker { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 5px; border-radius: 50%; border: 2px solid var(--button-text); background: var(--button-bg); color: var(--button-text); font: 700 12px/1 system-ui; text-decoration: none; z-index: 1; }
+.map-marker:hover { color: var(--button-text); background: var(--button-hover); z-index: 3; }
+.map-marker.is-selected { background: var(--pending-bg); color: var(--pending-text); outline: 3px solid var(--focus); outline-offset: 2px; z-index: 2; }
+.map-records { padding-left: 22px; }
+.map-records li { margin-bottom: 8px; }
+input[type="checkbox"] { width: auto; }
+.duplicate-group { margin: 16px 0; }
+@media (max-width:580px) { .map-toolbar { gap: 8px; } .map-viewport { max-height: 55vh; } }

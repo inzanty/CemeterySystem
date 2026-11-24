@@ -10,7 +10,11 @@
         <a class="button" href="{% url 'search' %}?cemetery={{ object.pk }}">Znajdź pochowane osoby</a>
         <a class="button secondary" href="{% url 'missing-grave-create' %}?cemetery={{ object.pk }}">Zgłoś brakujący grób</a>
     </div>
-    <h2>Sektory cmentarza</h2>
+    <div class="actions">
+        {% if has_plan %}<a class="button secondary" href="{% url 'cemetery-map' object.pk %}">Plan cmentarza</a>{% endif %}
+        {% if can_moderate %}<a href="{% url 'moderator-plan-edit' object.pk %}">Zarządzaj planem cmentarza</a>{% endif %}
+    </div>
+    <h2 class="section">Sektory cmentarza</h2>
     <div class="cards">
         {% for section in sections %}
             <article class="card">

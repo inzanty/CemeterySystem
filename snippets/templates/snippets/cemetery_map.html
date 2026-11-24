@@ -1,0 +1,17 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Plan — {{ cemetery }}{% endblock %}
+{% block content %}
+<div class="page-heading"><a href="{{ cemetery.get_absolute_url }}">← {{ cemetery }}</a><h1>Plan cmentarza</h1>
+    {% if selected_grave %}<p>Wybrany grób: <a href="{{ selected_grave.get_absolute_url }}">{{ selected_grave }}</a></p>{% endif %}
+    {% if can_moderate %}<p><a href="{% url 'moderator-plan-edit' cemetery.pk %}">Zarządzaj planem</a></p>{% endif %}
+</div>
+{% if plan %}
+    {% if selected_grave and selected_grave.map_x == None %}<p class="notice">Ten grób nie ma jeszcze znacznika na planie.</p>{% endif %}
+    {% include 'snippets/map_viewer.html' %}
+    <section class="section"><h2>Groby oznaczone na planie</h2>
+        <p class="help">Lista pozwala wybrać grób także bez korzystania z mapy.</p>
+        <ul class="map-records">{% for grave in markers %}<li><a href="{{ grave.get_absolute_url }}">{{ grave }}</a></li>
+        {% empty %}<li>Nie oznaczono jeszcze grobów na planie.</li>{% endfor %}</ul>
+    </section>
+{% else %}<section class="panel"><p>Plan tego cmentarza nie został jeszcze dodany.</p></section>{% endif %}
+{% endblock %}

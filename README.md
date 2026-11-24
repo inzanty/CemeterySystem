@@ -6,7 +6,9 @@ Aplikacja Django z polskim interfejsem do wyszukiwania osób zmarłych i miejsc 
 
 - Wyszukiwanie osób oraz przeglądanie cmentarzy, sektorów, grobów i pochówków.
 - Konta użytkowników, prywatna lista zapisanych grobów i zgłaszanie poprawek lub brakujących grobów.
-- Panel moderatora do zarządzania ewidencją, zdjęciami i zgłoszeniami oraz przeglądania historii zmian.
+- Plan cmentarza z zaznaczonymi grobami, powiększaniem i przesuwaniem.
+- Prywatne przypomnienia o terminach opłat zapisanych grobów.
+- Panel moderatora do zarządzania ewidencją, zdjęciami, zgłoszeniami, terminami opłat i możliwymi duplikatami oraz przeglądania historii zmian.
 - Publiczny REST API oraz jasny, ciemny i systemowy motyw interfejsu.
 
 ## Uruchomienie lokalne
@@ -37,6 +39,23 @@ dostęp do moderacji; samo `is_staff` go nie zapewnia.
 
 Akceptacja zgłoszenia brakującego grobu tworzy grób. Zaakceptowane poprawki
 moderator wprowadza ręcznie. Decyzje w zgłoszeniach są ostateczne.
+
+## Plany, opłaty i duplikaty
+
+Moderator dodaje plan JPEG/PNG (do 5 MiB i 20 megapikseli) w edycji cmentarza,
+a pozycję grobu ustawia na planie lub wpisuje współrzędne w edycji grobu.
+Zastąpienie planu wymaga potwierdzenia wyczyszczenia znaczników. Przeniesienie
+grobu lub sektora do innego cmentarza również usuwa jego pozycję.
+
+Termin „opłacono do” ustawia moderator w edycji grobu. Osoby, które zapisały grób,
+widzą w aplikacji przypomnienia o terminach zaległych i upływających w ciągu 30 dni
+(`/reminders/`). Terminy są prywatne dla tych osób i moderatorów; aplikacja nie
+pobiera płatności ani nie wysyła e-maili.
+
+Panel „Możliwe duplikaty” porównuje osoby (imiona, nazwiska i daty życia),
+cmentarze (nazwy i adresy), sektory i groby (lokalizacje) oraz pochówki
+(osoba, grób i data). Pomija wielkość liter i nadmiarowe odstępy.
+Moderator sprawdza wyniki ręcznie; aplikacja nie scala rekordów automatycznie.
 
 ## Konfiguracja i wdrożenie
 

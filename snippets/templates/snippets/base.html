@@ -10,7 +10,7 @@
             {% block title %}Ewidencja cmentarzy{% endblock %}
         · Memoria</title>
         <script src="{% static 'snippets/theme.js' %}?v=theme-toggle-2"></script>
-        <link rel="stylesheet" href="{% static 'snippets/style.css' %}?v=theme-toggle-2">
+        <link rel="stylesheet" href="{% static 'snippets/style.css' %}?v=locations-1">
         <link rel="stylesheet" href="{% static 'snippets/navigation.css' %}">
         <script src="{% static 'snippets/navigation.js' %}" defer></script>
     </head>
@@ -50,6 +50,10 @@
                                 {% if can_moderate %}
                                     <li><a href="{% url 'moderator-dashboard' %}"{% if navigation_page == 'moderator-dashboard' %} aria-current="page"{% endif %}>Panel moderatora</a></li>
                                 {% endif %}
+                                {% if can_moderate %}
+                                    <li><a href="{% url 'moderator-fees' %}"{% if navigation_page == 'moderator-fees' %} aria-current="page"{% endif %}>Terminy opłat</a></li>
+                                    <li><a href="{% url 'moderator-duplicates' %}"{% if navigation_page == 'moderator-duplicates' %} aria-current="page"{% endif %}>Możliwe duplikaty</a></li>
+                                {% endif %}
                                 {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Administracja</a></li>{% endif %}
                             </ul>
                         </details>
@@ -59,6 +63,7 @@
                             <summary>Moje konto</summary>
                             <ul class="nav-menu">
                                 <li><a href="{% url 'saved-graves' %}"{% if navigation_page == 'saved-graves' %} aria-current="page"{% endif %}>Moje zapisane groby</a></li>
+                                <li><a href="{% url 'fee-reminders' %}"{% if navigation_page == 'fee-reminders' %} aria-current="page"{% endif %}>Przypomnienia o opłatach{% if fee_reminder_count %} ({{ fee_reminder_count }}){% endif %}</a></li>
                                 <li><a href="{% url 'request-list' %}"{% if navigation_page == 'request-list' %} aria-current="page"{% endif %}>Moje zgłoszenia</a></li>
                                 <li><form method="post" action="{% url 'logout' %}">
                                     {% csrf_token %}<button class="nav-button">Wyloguj</button>
@@ -74,6 +79,9 @@
         </header>
         <main id="main" class="container">
             {% for message in messages %}<div class="notice" role="status">{{ message }}</div>{% endfor %}
+            {% if fee_reminder_count and navigation_page != 'fee-reminders' %}
+                <div class="notice" role="status"><a href="{% url 'fee-reminders' %}">Przypomnienia o opłatach zapisanych grobów: {{ fee_reminder_count }}</a></div>
+            {% endif %}
             {% block content %}{% endblock %}
         </main>
         <footer class="container">

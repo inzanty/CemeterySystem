@@ -126,7 +126,7 @@ def record_form(request, kind, pk=None):
             field.widget.attrs["aria-describedby"] = " ".join(descriptions)
     context = {"form": form, "object": record, "title": f"{'Edytuj' if pk else 'Dodaj'} {singular}",
                "list_url": record_url(kind, "list"), "list_title": title,
-               "guided": guided, "is_grave": kind == "grave"}
+               "guided": guided, "is_grave": kind == "grave", "is_cemetery": kind == "cemetery"}
     if pk:
         context["history_kind"] = kind
     if kind == "grave":

@@ -4,6 +4,8 @@
 {% block content %}
 <div class="page-heading"><a href="{{ list_url }}">← {{ list_title }}</a><h1>{{ title }}</h1></div>
 {% if history_kind %}<p><a href="{% url 'record-history' %}?type={{ history_kind }}&amp;record={{ object.pk }}">Historia rekordu</a></p>{% endif %}
+{% if is_cemetery and object.pk %}<p><a href="{% url 'moderator-plan-edit' object.pk %}">Zarządzaj planem cmentarza</a></p>{% endif %}
+{% if is_grave and object.pk %}<div class="actions"><a href="{% url 'moderator-position-edit' object.pk %}">Ustaw pozycję na planie</a><a href="{% url 'moderator-fee-edit' object.pk %}">Ustaw termin opłaty</a></div><p></p>{% endif %}
 <form method="post" class="panel management-form">
     {% csrf_token %}
     <p class="help">Pola oznaczone „wymagane” należy wypełnić.</p>

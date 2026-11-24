@@ -1,0 +1,18 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Możliwe duplikaty{% endblock %}
+{% block content %}
+<div class="page-heading"><a href="{% url 'moderator-dashboard' %}">← Panel moderatora</a><h1>Możliwe duplikaty</h1>
+    <p>Porównujemy imiona, nazwiska i daty życia osób; lokalizacje grobów i sektorów; nazwy i adresy cmentarzy; osobę, grób i datę pochówku.</p>
+    <p class="help">Wielkość liter i nadmiarowe odstępy są pomijane. Podobieństwo nie jest dowodem błędu — sprawdź źródła przed ręczną zmianą. Rekordy nie są scalane ani usuwane automatycznie.</p>
+</div>
+<form method="get" class="filter-grid panel">{% include 'snippets/form_fields.html' %}<div class="actions"><button>Sprawdź</button></div></form>
+<p class="section muted">Liczba grup do sprawdzenia: {{ paginator.count }}</p>
+{% for group in groups %}<section class="panel duplicate-group"><h2>Grupa {{ forloop.counter0|add:page_obj.start_index }}</h2>
+    {% for row in group %}<article class="record"><div class="prose"><h3>{{ row.object }} · #{{ row.object.pk }}</h3>
+        {% if kind == 'deceased' %}<p>{{ row.object.birth_date|date:'d.m.Y' }} — {{ row.object.death_date|date:'d.m.Y' }}</p>{% endif %}
+        {% if kind == 'cemetery' %}<p>{{ row.object.address|default:'Brak adresu' }}</p>{% endif %}
+        {% if kind == 'burial' %}<p>{{ row.object.burial_date|date:'d.m.Y' }}</p>{% endif %}
+    </div><a href="{{ row.edit_url }}">Sprawdź rekord →</a></article>{% endfor %}
+</section>{% empty %}<section class="panel"><p>Nie znaleziono możliwych duplikatów.</p></section>{% endfor %}
+{% include 'snippets/pagination.html' %}
+{% endblock %}

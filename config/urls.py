@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from snippets import api, views, record_management, features
+from snippets import api, views, record_management, features, locations, fees, duplicates
 
 router = DefaultRouter()
 router.register("cemeteries", api.CemeteryViewSet, basename="cemetery-api")
@@ -53,6 +53,13 @@ for kind, slug in (("cemetery", "cemeteries"), ("section", "sections"),
     ]
 
 urlpatterns += [
+    path("cemeteries/<int:pk>/map/", locations.cemetery_map, name="cemetery-map"),
+    path("moderator/cemeteries/<int:pk>/plan/", locations.plan_edit, name="moderator-plan-edit"),
+    path("moderator/graves/<int:pk>/position/", locations.position_edit, name="moderator-position-edit"),
+    path("moderator/graves/<int:pk>/fee/", fees.fee_edit, name="moderator-fee-edit"),
+    path("moderator/fees/", fees.moderator_fees, name="moderator-fees"),
+    path("moderator/duplicates/", duplicates.duplicate_list, name="moderator-duplicates"),
+    path("reminders/", fees.reminders, name="fee-reminders"),
     path("saved-graves/", features.saved_graves, name="saved-graves"),
     path("graves/<int:pk>/save/", features.save_grave, name="grave-save"),
     path("graves/<int:pk>/unsave/", features.unsave_grave, name="grave-unsave"),

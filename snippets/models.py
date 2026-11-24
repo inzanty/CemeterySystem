@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.urls import reverse
 
@@ -49,6 +50,10 @@ class Grave(models.Model):
     )
     row = models.CharField("rząd", max_length=50)
     number = models.CharField("numer", max_length=50)
+    map_x = models.DecimalField("pozycja pozioma (%)", max_digits=5, decimal_places=2,
+                               null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    map_y = models.DecimalField("pozycja pionowa (%)", max_digits=5, decimal_places=2,
+                               null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(100)])
 
     class Meta:
         verbose_name = "grób"
@@ -57,6 +62,12 @@ class Grave(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["section", "row", "number"], name="unique_grave_location"
+            ),
+            models.CheckConstraint(
+                check=(models.Q(map_x__isnull=True, map_y__isnull=True)
+                       | models.Q(map_x__isnull=False, map_y__isnull=False,
+                                  map_x__gte=0, map_x__lte=100, map_y__gte=0, map_y__lte=100)),
+                name="valid_grave_map_position",
             )
         ]
 
@@ -300,3 +311,30 @@ class RecordChange(models.Model):
         indexes = [models.Index(fields=["entity_type", "entity_id"])]
         verbose_name = "zmiana rekordu"
         verbose_name_plural = "historia rekordów"
+
+
+class CemeteryPlan(models.Model):
+    cemetery = models.OneToOneField(Cemetery, on_delete=models.CASCADE, related_name="plan", verbose_name="cmentarz")
+    image = models.ImageField("plan cmentarza", upload_to="cemetery_plans/")
+    updated_at = models.DateTimeField("zaktualizowano", auto_now=True)
+
+    class Meta:
+        verbose_name = "plan cmentarza"
+        verbose_name_plural = "plany cmentarzy"
+
+    def __str__(self):
+        return f"Plan — {self.cemetery}"
+
+
+class GraveFee(models.Model):
+    grave = models.OneToOneField(Grave, on_delete=models.CASCADE, related_name="fee", verbose_name="grób")
+    valid_until = models.DateField("opłacono do", db_index=True)
+    updated_at = models.DateTimeField("zaktualizowano", auto_now=True)
+
+    class Meta:
+        ordering = ["valid_until", "pk"]
+        verbose_name = "termin opłaty grobu"
+        verbose_name_plural = "terminy opłat grobów"
+
+    def __str__(self):
+        return f"Opłata — {self.grave}"

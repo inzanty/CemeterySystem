@@ -75,3 +75,28 @@ class RequestMigrationTests(TransactionTestCase):
             self.assertEqual(new.objects.count(), 1)
         finally:
             MigrationExecutor(connection).migrate(latest)
+
+    def test_location_migration_preserves_graves_saved_entries_and_history(self):
+        executor = MigrationExecutor(connection)
+        latest = executor.loader.graph.leaf_nodes()
+        previous = [("snippets", "0005_recordchange_after_relations_and_more")]
+        try:
+            executor.migrate(previous)
+            old = executor.loader.project_state(previous).apps
+            cemetery = old.get_model("snippets", "Cemetery").objects.create(name="Existing")
+            section = old.get_model("snippets", "Section").objects.create(cemetery=cemetery, name="A")
+            grave = old.get_model("snippets", "Grave").objects.create(section=section, row="1", number="2")
+            user = old.get_model("auth", "User").objects.create(username="existing")
+            saved = old.get_model("snippets", "SavedGrave").objects.create(user=user, grave=grave)
+            executor = MigrationExecutor(connection)
+            executor.migrate(latest)
+            apps = executor.loader.project_state(latest).apps
+            preserved = apps.get_model("snippets", "Grave").objects.get(pk=grave.pk)
+            self.assertEqual((preserved.section_id, preserved.row, preserved.number), (section.pk, "1", "2"))
+            self.assertIsNone(preserved.map_x)
+            self.assertIsNone(preserved.map_y)
+            self.assertEqual(apps.get_model("snippets", "SavedGrave").objects.get(pk=saved.pk).grave_id, grave.pk)
+            self.assertFalse(apps.get_model("snippets", "CemeteryPlan").objects.exists())
+            self.assertFalse(apps.get_model("snippets", "GraveFee").objects.exists())
+        finally:
+            MigrationExecutor(connection).migrate(latest)

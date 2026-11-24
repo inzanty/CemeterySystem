@@ -6,10 +6,10 @@ from datetime import date, datetime
 from django.db import transaction
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 
-from .models import Cemetery, Section, Grave, Deceased, Burial, GravePhoto, RecordChange
+from .models import Cemetery, Section, Grave, Deceased, Burial, GravePhoto, RecordChange, CemeteryPlan, GraveFee
 
 _actor = ContextVar("record_editor", default=None)
-TRACKED = (Cemetery, Section, Grave, Deceased, Burial, GravePhoto)
+TRACKED = (Cemetery, Section, Grave, Deceased, Burial, GravePhoto, CemeteryPlan, GraveFee)
 TYPE_LABELS = {model._meta.model_name: str(model._meta.verbose_name).capitalize() for model in TRACKED}
 
 
@@ -29,6 +29,8 @@ def snapshot(instance):
         value = getattr(instance, field.attname)
         if isinstance(value, (date, datetime)):
             value = value.isoformat()
+        elif value is not None and field.get_internal_type() == "DecimalField":
+            value = format(value, f".{field.decimal_places}f")
         elif hasattr(value, "name"):
             value = value.name
         result[field.attname] = value
@@ -84,3 +86,4 @@ def connect():
         post_save.connect(saved, sender=model, dispatch_uid=f"audit_after_{model.__name__}")
         pre_delete.connect(deleting, sender=model, dispatch_uid=f"audit_delete_{model.__name__}")
     post_delete.connect(remove_file, sender=GravePhoto, dispatch_uid="photo_file_cleanup")
+    post_delete.connect(remove_file, sender=CemeteryPlan, dispatch_uid="plan_file_cleanup")

@@ -1,0 +1,20 @@
+{% extends 'snippets/base.html' %}
+{% block title %}{% if moderator_view %}Terminy opłat{% else %}Przypomnienia o opłatach{% endif %}{% endblock %}
+{% block content %}
+<div class="page-heading">
+    {% if moderator_view %}<a href="{% url 'moderator-dashboard' %}">← Panel moderatora</a><h1>Terminy opłat</h1>
+    {% else %}<a href="{% url 'saved-graves' %}">← Moje zapisane groby</a><h1>Przypomnienia o opłatach</h1>{% endif %}
+    <p>{% if moderator_view %}Terminy zapisane w ewidencji.{% else %}Terminy dotyczą wyłącznie grobów zapisanych na Twoim koncie.{% endif %} Domyślnie pokazujemy terminy, które upłynęły lub upłyną w ciągu 30 dni.</p>
+    <p class="help">Brak terminu w ewidencji nie oznacza, że grób jest opłacony. Aktualny stan potwierdź u zarządcy cmentarza.</p>
+</div>
+<form method="get" class="filter-grid panel">{% include 'snippets/form_fields.html' %}<div class="actions"><button>Filtruj</button></div></form>
+<section class="section record-list">
+{% for fee in page_obj %}<article class="record"><div class="prose">
+    <span class="badge {% if fee.valid_until < today %}rejected{% endif %}">{% if fee.valid_until < today %}Po terminie{% else %}Opłacono do{% endif %} {{ fee.valid_until|date:'d.m.Y' }}</span>
+    <h2><a href="{{ fee.grave.get_absolute_url }}">{{ fee.grave }}</a></h2>
+    {% if fee.valid_until < today %}<p>Skontaktuj się z zarządcą w sprawie przedłużenia.</p>{% endif %}
+</div>{% if moderator_view %}<a href="{% url 'moderator-fee-edit' fee.grave_id %}">Zmień termin →</a>{% endif %}</article>
+{% empty %}<div class="empty"><p>Brak terminów spełniających wybrane kryteria.</p></div>{% endfor %}
+</section>
+{% include 'snippets/pagination.html' %}
+{% endblock %}

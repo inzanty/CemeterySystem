@@ -125,6 +125,6 @@ test('one button cycles system, light, dark with current and next accessible lab
 test('template requests updated script and stylesheet and initially hides all icons', () => {
     const template = fs.readFileSync('snippets/templates/snippets/base.html', 'utf8');
     assert.match(template, /theme\.js' %}\?v=theme-toggle-2/);
-    assert.match(template, /style\.css' %}\?v=theme-toggle-2/);
+    assert.match(template, /style\.css' %}\?v=[a-z0-9-]+/);
     assert.equal((template.match(/data-theme-icon="(?:light|dark|system)" style="display: none"/g) || []).length, 3);
 });

@@ -16,6 +16,16 @@
     {% else %}<a class="button secondary" href="{% url 'login' %}?next={{ request.path|urlencode }}">Zaloguj się, aby zapisać grób</a>{% endif %}
     {% if can_moderate %}<a href="{% url 'record-history' %}?type=grave&amp;record={{ object.pk }}">Historia rekordu</a>{% endif %}
     </div>
+    {% if plan and object.map_x != None and object.map_y != None %}
+    <section class="section"><h2>Położenie grobu</h2>
+        <p><a href="{% url 'cemetery-map' cemetery.pk %}?grave={{ object.pk }}">Otwórz plan cmentarza z zaznaczonym grobem →</a></p>
+        {% include 'snippets/map_viewer.html' with preview=True %}
+    </section>
+    {% elif plan %}<p class="section"><a href="{% url 'cemetery-map' cemetery.pk %}">Plan cmentarza</a> · Pozycja tego grobu nie została jeszcze oznaczona.</p>{% endif %}
+    {% if fee %}<section class="section panel"><h2>Termin opłaty</h2><p>Opłacono do <strong>{{ fee.valid_until|date:'d.m.Y' }}</strong>.</p>
+        {% if fee.valid_until < today %}<p class="errors">Termin upłynął. Skontaktuj się z zarządcą cmentarza.</p>{% endif %}
+        <p class="help">Informacja ewidencyjna. Płatności i przedłużenie ustal z zarządcą cmentarza.</p>
+    </section>{% endif %}
     <section class="section"><h2>Zdjęcia grobu</h2>
         {% include 'snippets/photo_gallery.html' %}
     </section>

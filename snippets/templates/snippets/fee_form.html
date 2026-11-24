@@ -1,0 +1,11 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Termin opłaty grobu{% endblock %}
+{% block content %}
+<div class="page-heading"><a href="{% url 'moderator-grave-edit' object.pk %}">← Edycja grobu</a><h1>Termin opłaty</h1><p>{{ object }}</p></div>
+<form method="post" class="panel management-form">
+    {% csrf_token %}
+    <p>Wpisz datę ważności opłaty zgodnie z ewidencją zarządcy. Zapis nie pobiera płatności.</p>
+    {% include 'snippets/form_fields.html' %}
+    <button>Zapisz termin</button>
+</form>
+{% endblock %}

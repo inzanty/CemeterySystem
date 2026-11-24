@@ -1,0 +1,16 @@
+{% extends 'snippets/base.html' %}
+{% block title %}Pozycja grobu na planie{% endblock %}
+{% block content %}
+<div class="page-heading"><a href="{% url 'moderator-grave-edit' object.pk %}">← Edycja grobu</a><h1>Pozycja na planie</h1><p>{{ object }}</p></div>
+<div data-marker-editor>
+    <form method="post" class="panel management-form" id="position-form">
+        {% csrf_token %}
+        <p>Kliknij miejsce na planie lub wpisz współrzędne procentowe. Zmiany wymagają zapisania.</p>
+        {% include 'snippets/form_fields.html' %}
+        <div class="actions"><button>Zapisz pozycję</button><button type="button" class="secondary" data-clear-position hidden>Usuń znacznik</button></div>
+        <p role="status" data-position-status></p>
+    </form>
+    {% if plan %}<section class="section">{% include 'snippets/map_viewer.html' %}</section>
+    {% else %}<p class="notice">Najpierw <a href="{% url 'moderator-plan-edit' cemetery.pk %}">dodaj plan cmentarza</a>.</p>{% endif %}
+</div>
+{% endblock %}

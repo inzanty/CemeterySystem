@@ -27,6 +27,16 @@ class SectionForm(forms.ModelForm):
         fields = ("cemetery", "name")
         help_texts = {"name": "Np. A lub 12"}
 
+    @transaction.atomic
+    def save(self, commit=True):
+        moved = self.instance.pk and Section.objects.get(pk=self.instance.pk).cemetery_id != self.instance.cemetery_id
+        section = super().save(commit=commit)
+        if commit and moved:
+            for grave in section.graves.filter(map_x__isnull=False):
+                grave.map_x = grave.map_y = None
+                grave.save(update_fields=["map_x", "map_y"])
+        return section
+
 
 class DeceasedForm(forms.ModelForm):
     class Meta:
@@ -77,6 +87,13 @@ class GraveForm(forms.ModelForm):
         if cemetery and section and section.cemetery_id != cemetery.pk:
             self.add_error("section", "Sektor nie należy do wybranego cmentarza.")
         return data
+
+    def save(self, commit=True):
+        if self.instance.pk:
+            old = Grave.objects.select_related("section").get(pk=self.instance.pk)
+            if old.section.cemetery_id != self.instance.section.cemetery_id:
+                self.instance.map_x = self.instance.map_y = None
+        return super().save(commit=commit)
 
 
 class GraveCreateForm(GraveForm):

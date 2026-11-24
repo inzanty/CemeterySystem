@@ -1,0 +1,28 @@
+{% load static l10n %}
+<div class="cemetery-map" data-cemetery-map>
+    <div class="map-toolbar" hidden>
+        <button type="button" class="small secondary" data-map-zoom="-0.5" aria-label="Pomniejsz plan">−</button>
+        <button type="button" class="small secondary" data-map-zoom="0.5" aria-label="Powiększ plan">+</button>
+        <button type="button" class="small secondary" data-map-reset>Dopasuj</button>
+        <output aria-live="polite" data-map-scale>100%</output>
+    </div>
+    <p class="help">Przesuwaj powiększony plan palcem lub myszą. Możesz też użyć pasków przewijania albo strzałek po ustawieniu fokusu na planie.</p>
+    <div class="map-viewport" tabindex="0" role="region" aria-label="Plan cmentarza {{ cemetery.name }}">
+        <div class="map-canvas">
+            <img src="{{ plan.image.url }}" alt="Plan cmentarza {{ cemetery.name }}" draggable="false">
+            {% if preview %}
+                <a class="map-marker is-selected" href="{% url 'cemetery-map' cemetery.pk %}?grave={{ selected_grave.pk }}"
+                   style="left: {{ selected_grave.map_x|unlocalize }}%; top: {{ selected_grave.map_y|unlocalize }}%"
+                   aria-label="Wybrany grób: {{ selected_grave }}" title="{{ selected_grave }}">●</a>
+            {% else %}
+                {% for grave in markers %}
+                    <a class="map-marker{% if selected_grave.pk == grave.pk %} is-selected{% endif %}"
+                       href="{{ grave.get_absolute_url }}" {% if selected_grave.pk == grave.pk %}aria-current="location"{% endif %}
+                       style="left: {{ grave.map_x|unlocalize }}%; top: {{ grave.map_y|unlocalize }}%"
+                       aria-label="{{ grave }}" title="{{ grave }}">{{ grave.number }}</a>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script src="{% static 'snippets/cemetery_map.js' %}" defer></script>

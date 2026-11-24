@@ -47,6 +47,8 @@ class CemeteryDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["sections"] = self.object.sections.annotate(grave_count=Count("graves"))
+        from .models import CemeteryPlan
+        context["has_plan"] = CemeteryPlan.objects.filter(cemetery=self.object).exists()
         return context
 
 
@@ -86,6 +88,13 @@ class GraveDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["is_saved"] = self.request.user.is_authenticated and self.object.saved_entries.filter(user=self.request.user).exists()
+        from .locations import map_context
+        from .models import GraveFee
+        context.update(map_context(self.object.section.cemetery, self.object))
+        # Fee dates are visible only to moderators or users who saved this grave.
+        if is_moderator(self.request.user) or context["is_saved"]:
+            context["fee"] = GraveFee.objects.filter(grave=self.object).first()
+        context["today"] = timezone.localdate()
         return context
 
 
